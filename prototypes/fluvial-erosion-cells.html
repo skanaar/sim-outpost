@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>fluid</title>
+  <style>
+  canvas {
+    width: 500px;
+    height: 500px;
+  }
+  </style>
+</head>
+<body class="enable-scroll">
+    <canvas id="canvas" width=100 height=100></canvas>
+    <button onclick="config.fluid = !config.fluid">fluid</button>
+    <button onclick="config.velocity = !config.velocity">velocity</button>
+    <button onclick="config.sludge = !config.sludge">sludge</button>
+    <script>
+
+      var config = {
+        fluid: true,
+        sludge: false,
+        velocity: false
+      }
+
+      var canvas = document.getElementById('canvas');
+
+      const constrain = (low, high, x) => Math.max(low, Math.min(high, x))
+      const range = (end) => [...Array(end).keys()]
+      const field = (res, value) => range(res).map(i => range(res).map(j => value(i,j)))
+      const wave = (x) => Math.sin(6.28*x)*0.5 + 0.5
+      const sq = (x) => x*x
+
+      var res = 100
+      var cell = 1
+      var canvasScale = 5
+      var grid = field(res, (i,j) => Cell((wave(i/res)+wave(j/res)+Math.random())))
+
+      canvas.addEventListener('click', function (e) {
+        var i = Math.trunc(e.clientX/canvasScale)
+        var j = Math.trunc(e.clientY/canvasScale)
+        grid[i][j].fluid += 100
+      })
+      var ctx = canvas.getContext('2d');
+
+      function draw(grid, color, extractor) {
+        extractor = extractor || (e) => e
+        for(var i=0; i<res; i++) {
+          for(var j=0; j<res; j++) {
+            var value = constrain(0, 1, extractor(grid[i][j]))
+            ctx.fillStyle = 'rgba('+color+', '+value+')'
+            ctx.fillRect(i*cell, j*cell, cell, cell)
+          }
+        }
+      }
+
+      function Cell(height) {
+        return { height: height, fluid: 0, sludge: 0, vx: 0, vy: 0 }
+      }
+
+      function kernelSample(grid, i, j) {
+        var x = constrain(1, res-2, i)
+        var y = constrain(1, res-2, j)
+        return (
+          grid[x+1][y].height + 
+          grid[x][y+1].height + 
+          grid[x-1][y].height + 
+          grid[x][y-1].height
+        ) / 4
+      }
+
+      function smoothed(grid) {
+        var buffer = field(res, () => 0)
+        for(var i=0; i<res; i++) {
+          for(var j=0; j<res; j++) {
+            buffer[i][j] = (grid[i][j].height + kernelSample(grid,i,j))/2
+          }
+        }
+        return buffer
+      }
+
+      function calculateCell(i,j,args) {
+        var x = constrain(1, res-2, i)
+        var y = constrain(1, res-2, j)
+        var c = grid[x][y]
+        var l = grid[x-1][y]
+        var r = grid[x+1][y]
+        var t = grid[x][y-1]
+        var b = grid[x][y+1]
+        var dx = (r.height+r.fluid) - (l.height+l.fluid) // /(2*grid)
+        var dy = (b.height+b.fluid) - (t.height+t.fluid) // /(2*grid)
+        var vx = Math.max(-c.fluid, /*gravity*/ dx) / c.fluid
+        var vy = Math.max(-c.fluid, /*gravity*/ dy) / c.fluid
+        return {
+          height: c.height,
+
+        }
+      }
+
+      function simulateFluid(dt, args) {
+        var grid2 = field(res, () => Cell(0))
+        for(var i=0; i<res; i++) {
+          for(var j=0; j<res; j++) {
+            grid2[i][j] = calculateCell(i,j, args)
+          }
+        }
+        grid = grid2
+      }
+
+      function update() {
+        for(var e in range(10)) {
+          simulateFluid({ erode: 0.00001, sediment: 0.0001, dt: 0.4 })
+        }
+        ctx.fillStyle = '#000'
+        ctx.fillRect(0, 0, res*cell, res*cell)
+        draw(grid, '255,255,255', (e) => e.height * 0.02)
+        if (config.fluid) { draw(grid, '0,0,255', (e) => e.fluid * 0.1) }
+        if (config.sludge) { draw(grid, '255,255,0', (e) => e.sludge) }
+      }
+      
+      for(var e in range(0)) {
+        grid = smoothed(grid)
+      }
+
+      setInterval(update, 50)
+      update()
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>fluid</title>
+  <style>
+  canvas {
+    width: 500px;
+    height: 500px;
+  }
+  </style>
+</head>
+<body class="enable-scroll">
+    <canvas id="canvas" width=100 height=100></canvas>
+    <button onclick="config.fluid = !config.fluid">fluid</button>
+    <button onclick="config.velocity = !config.velocity">velocity</button>
+    <button onclick="config.sludge = !config.sludge">sludge</button>
+    <script>
+
+      var canvas = document.getElementById('canvas');
+
+      var config = {
+        fluid: true,
+        sludge: false,
+        velocity: false
+      }
+
+      const constrain = (low, high, x) => Math.max(low, Math.min(high, x))
+      const range = (end) => [...Array(end).keys()]
+      const field = (res, value) => range(res).map(i => range(res).map(j => value(i,j)))
+      const wave = (x) => Math.sin(6.28*x)*0.5 + 0.5
+      const sq = (x) => x*x
+
+      var res = 100
+      var cell = 1
+      var canvasScale = 5
+      var terrain = field(res, (i,j) => 20*(-i*0.01 + wave(4*i/res) + wave(4*j/res) + Math.random()))
+      var fluid = field(res, () => 0)
+      var sludge = field(res, () => 0)
+      var vx = field(res, () => 0)
+      var vy = field(res, () => 0)
+
+      canvas.addEventListener('click', function (e) {
+        var i = Math.trunc(e.clientX/canvasScale)
+        var j = Math.trunc(e.clientY/canvasScale)
+        fluid[i][j] += 100
+      })
+      var ctx = canvas.getContext('2d');
+
+      function draw(grid, color, factor) {
+        factor = factor || 1
+        for(var i=0; i<res; i++) {
+          for(var j=0; j<res; j++) {
+            var value = constrain(0, 1, grid[i][j] * factor)
+            ctx.fillStyle = 'rgba('+color+', '+value+')'
+            ctx.fillRect(i*cell, j*cell, cell, cell)
+          }
+        }
+      }
+
+      function kernelSample(grid, i, j) {
+        var x = constrain(1, res-2, i)
+        var y = constrain(1, res-2, j)
+        return (grid[x+1][y] + grid[x][y+1] + grid[x-1][y] + grid[x][y-1]) / 4
+      }
+
+      function smoothed(grid) {
+        var buffer = field(res, () => 0)
+        for(var i=0; i<res; i++) {
+          for(var j=0; j<res; j++) {
+            buffer[i][j] = (grid[i][j] + kernelSample(grid,i,j))/2
+          }
+        }
+        return buffer
+      }
+
+      function fluidDelta(i, j) {
+        var h = terrain[i][j] + fluid[i][j]
+        return (kernelSample(terrain,i,j) + kernelSample(fluid,i,j) - h)
+      }
+
+      function simulateFluid(erosion, sedimentation, dt) {
+        var fluid2 = field(res, () => 0)
+        var sludge2 = field(res, () => 0)
+        var terrain2 = field(res, () => 0)
+        for(var i=0; i<res; i++) {
+          for(var j=0; j<res; j++) {
+            var x = constrain(1, res-2, i)
+            var y = constrain(1, res-2, j)
+            var delta = fluidDelta(i, j)
+            var fluidPillar = fluid[i][j] / sq(1+fluid[i][j])
+            vx[i][j] = ((terrain[x-1][y] + fluid[x-1][y]) - (terrain[x+1][y] + fluid[x+1][y])) * fluidPillar
+            vy[i][j] = ((terrain[x][y-1] + fluid[x][y-1]) - (terrain[x][y+1] + fluid[x][y+1])) * fluidPillar
+            fluid2[i][j] = Math.max(0, fluid[i][j] + dt * delta)
+            var velocity = Math.sqrt(sq(vx[i][j]) + sq(vy[i][j]))
+            var erosionSum = erosion*velocity - sedimentation*sludge[i][j]
+            var deltaSludge = vx*(sludge[x-1][y]-sludge[x][y]) + vy*(sludge[x][y-1]-sludge[x][y])
+            terrain2[i][j] = terrain[i][j] - dt * erosionSum
+            sludge2[i][j] = Math.max(0, sludge[i][j] + dt*erosionSum + dt*deltaSludge)
+          }
+        }
+        fluid = fluid2
+        terrain = terrain2
+        sludge = sludge2
+      }
+
+      function addAt(x, amount) {
+        for(var j=0; j<res; j++) {
+          fluid[x][j] = Math.max(0, fluid[x][j]+amount)
+        }
+      }
+
+      function update() {
+        addAt(1, 1)
+        addAt(74, -1)
+        addAt(75, -1)
+        addAt(76, -1)
+        for(var e in range(1)) {
+          simulateFluid(0.00001, 0.0001, 0.4)
+        }
+        ctx.fillStyle = '#000'
+        ctx.fillRect(0, 0, res*cell, res*cell)
+        draw(terrain, '255,255,255', 0.02)
+        if (config.fluid) draw(fluid, '0,0,255', 0.1)
+        if (config.sludge) draw(sludge, '255,255,0')
+        if (config.velocity) draw(velocity, '255,0,0', 0.1)
+      }
+      
+      for(var e in range(5)) {
+        terrain = smoothed(terrain)
+      }
+
+      //setInterval(update, 50)
+      update()
+
+    </script>
+</body>
+</html>
