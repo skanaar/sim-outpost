@@ -1,43 +1,37 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class Manager {
 
-    static BuildingType reactor = new BuildingType {
-        name = "Reactor",
-        model = "cylinder",
-        height = 2f,
-        w = 1,
-        h = 1,
-        turnover = new Attr { energy = 2, fuel = -1 }
-    };
-    static BuildingType greenhouse = new BuildingType {
-        name = "Green house",
-        model = "block",
-        height = 0.5f,
-        w = 1,
-        h = 1,
-        turnover = new Attr { food = 3, oxygen = 1 }
-    };
-    static BuildingType habitat = new BuildingType {
-        name = "Habitat",
-        model = "capsule",
-        height = 1f,
-        w = 1,
-        h = 1,
-        turnover = new Attr { food = -2, oxygen = -1 }
-    };
-
     public TerrainGrid Terrain { get; } = new TerrainGrid(21);
     public List<Building> Buildings { get; } = new List<Building>{
-        new Building{ type = reactor, i = 1, j = 3 },
-        new Building{ type = greenhouse, i = 6, j = 6 },
-        new Building{ type = greenhouse, i = 5, j = 4 },
-        new Building{ type = habitat, i = 8, j = 8 },
+        new Building{ type = Definitions.reactor, i = 1, j = 3 },
+        new Building{ type = Definitions.greenhouse, i = 6, j = 6 },
+        new Building{ type = Definitions.greenhouse, i = 5, j = 4 },
+        new Building{ type = Definitions.habitat, i = 8, j = 8 },
     };
 
     public static Manager Instance { get; private set; } = new Manager();
 
+    public Action<Building> OnAddBuilding { get; set; }
     public Attr Commodities { get; set; } = new Attr{ fuel = 100 };
+    public Vector3 HoverPoint { get; set; } = new Vector3(0, 0, 0);
+    public Cell SelectedCell { get; set; } = new Cell{ i = -1, j = -1};
+
+    public Cell GridAtPoint(Vector3 p) {
+        return new Cell { i = Mathf.RoundToInt(p.x+0.5f), j = Mathf.RoundToInt(p.z+ 0.5f) };
+    }
+
+    public void StartBuild(BuildingType type) {
+        AddBuilding(type, SelectedCell);
+    }
+
+    public void AddBuilding(BuildingType type, Cell cell) {
+        var building = new Building { type = type, i = cell.i, j = cell.j };
+        Buildings.Add(building);
+        OnAddBuilding(building);
+    }
 
     public void Update(float deltaTime) {
         Terrain.Update(deltaTime);

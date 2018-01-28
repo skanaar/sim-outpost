@@ -36,4 +36,11 @@ public static class Util {
             c1.a * (1 - k) + c2.a * k
         );
     }
+    public static Color rgb(int hex) {
+        return new Color(
+            ((hex & 0xf00) >> 8) / 16.0f,
+            ((hex & 0x0f0) >> 4) / 16.0f,
+            ((hex & 0x00f) >> 0) / 16.0f
+        );
+    }
 }

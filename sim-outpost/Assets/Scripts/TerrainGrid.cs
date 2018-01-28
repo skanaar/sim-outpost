@@ -1,13 +1,18 @@
 ﻿using UnityEngine;
 using static Util;
 
+public struct Cell {
+    public int i;
+    public int j;
+}
+
 public class TerrainGrid {
     Noise noise = new Noise{ scale = 10f, octaves = 4 };
     float[] curve = { 0, 0.2f, 1 };
     public int Res { get; }
     public int GridRes { get; }
     public float MaxHeight { get; } = 10;
-    public Color[] Spectrum { get; } = { new Color(0, 0, 1), new Color(0, 1, 0) };
+    public Color[] Spectrum { get; } = { rgb(0x88F), rgb(0x8F8), rgb(0x444), rgb(0xAAA) };
     public float[,] height;
 
     public TerrainGrid(int res) {
@@ -28,7 +33,12 @@ public class TerrainGrid {
 
     public float MeshScale => GridRes / (float)Res;
 
+    public Vector3 GetCellFloor(Cell cell) => GetCellFloor(cell.i, cell.j);
+
     public Vector3 GetCellFloor(int i, int j) {
+        if (i < 0 || i >= Res || j < 0 || j >= Res) {
+            return new Vector3(0, 0, 0);
+        }
         float h1 = height[(i + 0) / Supersampling, (j + 0) / Supersampling];
         float h2 = height[(i + 1) / Supersampling, (j + 0) / Supersampling];
         float h3 = height[(i + 0) / Supersampling, (j + 1) / Supersampling];

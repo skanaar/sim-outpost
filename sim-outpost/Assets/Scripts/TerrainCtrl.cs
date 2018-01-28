@@ -3,10 +3,15 @@ using static Util;
 
 public class TerrainCtrl : MonoBehaviour {
 
+    public static int TerrainLayer = 10;
+
     TerrainGrid Terrain => Manager.Instance.Terrain;
     
     void Start() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
+        GetComponent<Renderer>().material = new Material(Shader.Find("Custom/groundshader"));
+        gameObject.AddComponent<MeshCollider>();
+        gameObject.layer = TerrainLayer;
     }
 
     Mesh BuildMesh(int res) {

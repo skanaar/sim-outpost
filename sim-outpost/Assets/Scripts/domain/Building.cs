@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Building {
     public BuildingType type;
@@ -16,6 +15,8 @@ public class BuildingType {
     public int w;
     public int h;
     public Attr turnover;
+    public Attr cost;
+    public float buildTime;
     public string model;
 }
 
