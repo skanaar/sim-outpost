@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using static Util;
 
 public class EngineCtrl : MonoBehaviour {
 
@@ -21,8 +22,9 @@ public class EngineCtrl : MonoBehaviour {
     void Start() {
         Cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         Cursor.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
-        Selection = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        Selection.transform.localScale = new Vector3(1, 0.25f, 1);
+
+        Selection = GameObject.CreatePrimitive(PrimitiveType.Quad);
+
         var terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);
         terrain.AddComponent<TerrainCtrl>();
         foreach (var item in Manager.Instance.Buildings) {
@@ -38,19 +40,34 @@ public class EngineCtrl : MonoBehaviour {
     void Update() {
         Manager.Instance.Update(Time.deltaTime);
         Cursor.transform.position = Manager.Instance.HoverPoint;
-        Selection.transform.position = Manager.Instance.Terrain.GetCellFloor(Manager.Instance.SelectedCell);
+
         foreach (var item in Manager.Instance.Buildings) {
             var obj = item.gameObject;
             var height = item.type.height;
+            if (obj == null) print("GAMEOBJECT IS NULL");
             obj.transform.position = Manager.Instance.Terrain.GetCellFloor(item.i, item.j);
             obj.transform.position += new Vector3(item.type.w / 2, height / 2, item.type.h / 2);
-            obj.transform.localScale = new Vector3(1, height, 1);
+            obj.transform.localScale = new Vector3(1, height * item.buildProgress, 1);
             var material = item.gameObject.GetComponent<Renderer>().material;
-            material.color = item.enabled ? colors[item.type.model] : new Color(0.3f, 0.3f, 0.3f);
+            material.color = item.enabled ? colors[item.type.model] : rgb(0x555);
+            if (item.buildProgress < 1) { material.color = rgb(0xDDD); }
         }
+
         InputFilter.Update();
-        if (InputFilter.IsStartOfTap) {
+        if (InputFilter.IsStartOfTap && Input.mousePosition.x > 100) {
             Manager.Instance.SelectedCell = Manager.Instance.GridAtPoint(Manager.Instance.HoverPoint);
+            var selected = Manager.Instance.SelectedCell;
+            
+            var isBuildable = Manager.Instance.Terrain.Slope(selected.i, selected.j) < 0.25f;
+            Selection.transform.position = new Vector3(selected.i, 0, selected.j);
+            Selection.GetComponent<MeshFilter>().mesh.vertices = new Vector3[]{
+                new Vector3(0, Manager.Instance.Terrain.height[selected.i, selected.j] + 0.1f, 0),
+                new Vector3(1, Manager.Instance.Terrain.height[selected.i+1, selected.j] + 0.1f, 0),
+                new Vector3(0, Manager.Instance.Terrain.height[selected.i, selected.j+1] + 0.1f, 1),
+                new Vector3(1, Manager.Instance.Terrain.height[selected.i+1, selected.j+1] + 0.1f, 1)
+            };
+            Selection.GetComponent<MeshFilter>().mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+            Selection.GetComponent<Renderer>().material.color = isBuildable ? rgb(0xFF0) : rgb(0xF00);
         }
     }
 }
@@ -64,5 +81,10 @@ class InputFilter {
     public static void Update() {
         hold = tapp;
         tapp = Input.GetButtonDown("Fire1");
+    }
+
+    public static void AbortTap() {
+        tapp = false;
+        hold = false;
     }
 }

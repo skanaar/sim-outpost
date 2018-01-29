@@ -4,7 +4,7 @@ public class CameraCtrl : MonoBehaviour {
 
 	void Start() {
         var terrain = Manager.Instance.Terrain;
-        transform.position = terrain.GetCellFloor(terrain.GridRes / 2, terrain.GridRes / 2);
+        transform.position = terrain.GetCellFloor(terrain.Res / 2, terrain.Res / 2);
         transform.Rotate(new Vector3(25, 60, 0));
 	}
 
@@ -22,6 +22,7 @@ public class CameraCtrl : MonoBehaviour {
             var type = Definitions.types[i];
             var didClick = GUI.Button(new Rect(10, 10 + 40 * i, 100, 30), type.name);
             if (didClick) {
+                InputFilter.AbortTap();
                 Manager.Instance.StartBuild(type);
             }
         }

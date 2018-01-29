@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using static Util;
 
 public struct Cell {
@@ -10,18 +11,16 @@ public class TerrainGrid {
     Noise noise = new Noise{ scale = 10f, octaves = 4 };
     float[] curve = { 0, 0.2f, 1 };
     public int Res { get; }
-    public int GridRes { get; }
     public float MaxHeight { get; } = 10;
     public Color[] Spectrum { get; } = { rgb(0x88F), rgb(0x8F8), rgb(0x444), rgb(0xAAA) };
     public float[,] height;
 
     public TerrainGrid(int res) {
-        Res = res * 1;
-        GridRes = res;
+        Res = res;
         height = new float[Res, Res];
         for (int x = 0; x < Res; x++) {
             for (int y = 0; y < Res; y++) {
-                height[x, y] = MaxHeight * lerp(curve, noise[x * MeshScale, y * MeshScale]);
+                height[x, y] = MaxHeight * lerp(curve, noise[x, y]);
             }
         }
     }
@@ -29,22 +28,32 @@ public class TerrainGrid {
     public void Update(float dt) {
     }
 
-    public int Supersampling => Res / GridRes;
-
-    public float MeshScale => GridRes / (float)Res;
-
     public Vector3 GetCellFloor(Cell cell) => GetCellFloor(cell.i, cell.j);
+    public Vector3 GetCorner(int i, int j) => new Vector3(i, height[i, j], j);
 
     public Vector3 GetCellFloor(int i, int j) {
-        if (i < 0 || i >= Res || j < 0 || j >= Res) {
+        if (i < 0 || i > Res-2 || j < 0 || j > Res-2) {
             return new Vector3(0, 0, 0);
         }
-        float h1 = height[(i + 0) / Supersampling, (j + 0) / Supersampling];
-        float h2 = height[(i + 1) / Supersampling, (j + 0) / Supersampling];
-        float h3 = height[(i + 0) / Supersampling, (j + 1) / Supersampling];
-        float h4 = height[(i + 1) / Supersampling, (j + 1) / Supersampling];
+        float h1 = height[(i + 0), (j + 0)];
+        float h2 = height[(i + 1), (j + 0)];
+        float h3 = height[(i + 0), (j + 1)];
+        float h4 = height[(i + 1), (j + 1)];
         float h = min(min(h1, h2), min(h3, h4));
-        return new Vector3(i * MeshScale + 0.5f/ MeshScale, h, j * MeshScale + 0.5f / MeshScale);
+        return new Vector3(i + 0.5f, h, j + 0.5f);
+    }
+
+    internal float Slope(int i, int j) {
+        if (i < 0 || i > Res - 2 || j < 0 || j > Res - 2) {
+            return 0;
+        }
+        float h1 = height[(i + 0), (j + 0)];
+        float h2 = height[(i + 1), (j + 0)];
+        float h3 = height[(i + 0), (j + 1)];
+        float h4 = height[(i + 1), (j + 1)];
+        float low = min(min(h1, h2), min(h3, h4));
+        float high = max(max(h1, h2), max(h3, h4));
+        return high - low;
     }
 }
 

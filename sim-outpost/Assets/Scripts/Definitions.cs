@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 
 public class Definitions {
+    public static Attr StartingCommodities = new Attr { metal = 100, biosludge = 20, fuel = 100 };
     public static BuildingType reactor = new BuildingType {
         name = "Reactor",
         model = "cylinder",
-        height = 2f,
+        height = 1f,
         w = 1,
         h = 1,
         turnover = new Attr { energy = 2, fuel = -1 },
