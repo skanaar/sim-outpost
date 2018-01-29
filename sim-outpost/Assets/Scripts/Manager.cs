@@ -6,19 +6,14 @@ using UnityEngine;
 public class Manager {
 
     public TerrainGrid Terrain { get; } = new TerrainGrid(21);
-    public List<Building> Buildings { get; } = new List<Building>{
-        new Building{ type = Definitions.reactor, i = 1, j = 3 },
-        new Building{ type = Definitions.greenhouse, i = 6, j = 6 },
-        new Building{ type = Definitions.greenhouse, i = 5, j = 4 },
-        new Building{ type = Definitions.habitat, i = 8, j = 8 },
-    };
+    public List<Building> Buildings { get; } = new List<Building>();
 
     public static Manager Instance { get; private set; } = new Manager();
 
-    public Action<Building> OnAddBuilding { get; set; }
     public Attr Commodities { get; set; } = Definitions.StartingCommodities;
     public Vector3 HoverPoint { get; set; } = new Vector3(0, 0, 0);
     public Cell SelectedCell { get; set; } = new Cell{ i = -1, j = -1};
+    public Building SelectedBuilding { get; set; } = null;
 
     public Cell GridAtPoint(Vector3 p) {
         return new Cell { i = Mathf.RoundToInt(p.x - 0.5f), j = Mathf.RoundToInt(p.z - 0.5f) };
@@ -32,28 +27,33 @@ public class Manager {
         if (Buildings.Any(e => e.IsOccupying(cell))) {
             return;
         }
-        var building = new Building { type = type, i = cell.i, j = cell.j };
+        var building = new Building { type = type, Cell = cell };
         Buildings.Add(building);
-        OnAddBuilding(building);
+        SelectedBuilding = building;
     }
 
     public void Update(float deltaTime) {
         Terrain.Update(deltaTime);
         foreach (var building in Buildings) {
-            if (building.buildProgress >= 1) {
-                building.enabled = (Attr.Zero <= building.type.turnover + Commodities);
-                if (building.enabled) {
+            if (building.BuildProgress >= 1) {
+                building.IsSupplied = (Attr.Zero <= building.type.turnover + Commodities);
+                if (building.IsSupplied && building.IsEnabled) {
                     Commodities = Commodities + deltaTime * building.type.turnover;
                 }
             }
             else {
                 var deltaCost = (-deltaTime / building.type.buildTime) * building.type.cost;
-                building.enabled = (Attr.Zero <= deltaCost + Commodities);
-                if (building.enabled) {
+                building.IsSupplied = (Attr.Zero <= deltaCost + Commodities);
+                if (building.IsSupplied && building.IsEnabled) {
                     Commodities = Commodities + deltaCost;
-                    building.buildProgress += deltaTime / building.type.buildTime;
+                    building.BuildProgress += deltaTime / building.type.buildTime;
                 }
             }
         }
+    }
+
+    internal void SelectCell() {
+        SelectedCell = GridAtPoint(HoverPoint);
+        SelectedBuilding = Buildings.FirstOrDefault(e => e.IsOccupying(SelectedCell));
     }
 }

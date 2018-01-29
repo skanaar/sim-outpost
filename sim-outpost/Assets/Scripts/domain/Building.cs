@@ -3,14 +3,14 @@ using UnityEngine;
 
 public class Building {
     public BuildingType type;
-    public int i;
-    public int j;
-    public bool enabled;
-    public float buildProgress;
-    public GameObject gameObject;
+    public Cell Cell;
+    public bool IsEnabled = true;
+    public bool IsSupplied;
+    public float BuildProgress;
+    public GameObject GameObject;
 
     public bool IsOccupying(Cell cell) {
-        return cell.i >= i && cell.i < i + type.w && cell.j >= j && cell.j < j + type.h;
+        return cell.i >= Cell.i && cell.i < Cell.i + type.w && cell.j >= Cell.j && cell.j < Cell.j + type.h;
     }
 }
 

@@ -18,9 +18,14 @@ public class CameraCtrl : MonoBehaviour {
     }
 
     void OnGUI() {
+        if (Manager.Instance.SelectedBuilding != null) {
+            if (GUI.Button(new Rect(10, 10, 100, 30), "Toggle")) {
+                Manager.Instance.SelectedBuilding.IsEnabled = !Manager.Instance.SelectedBuilding.IsEnabled;
+            }
+        }
         for (int i = 0; i < Definitions.types.Count; i++) {
             var type = Definitions.types[i];
-            var didClick = GUI.Button(new Rect(10, 10 + 40 * i, 100, 30), type.name);
+            var didClick = GUI.Button(new Rect(10, 50 + 40 * i, 100, 30), type.name);
             if (didClick) {
                 InputFilter.AbortTap();
                 Manager.Instance.StartBuild(type);

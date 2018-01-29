@@ -4,17 +4,7 @@ using static Util;
 
 public class EngineCtrl : MonoBehaviour {
 
-    static Dictionary<string, PrimitiveType> models = new Dictionary<string, PrimitiveType> {
-        { "block", PrimitiveType.Cube },
-        { "cylinder", PrimitiveType.Cylinder },
-        { "capsule", PrimitiveType.Capsule }
-    };
-
-    static Dictionary<string, Color> colors = new Dictionary<string, Color> {
-        { "block", new Color(0.5f, 1f, 0.5f) },
-        { "cylinder", new Color(0.5f, 0.5f, 1f) },
-        { "capsule", new Color(1f, 0.5f, 0.5f)}
-    };
+    Manager Game => Manager.Instance;
 
     public GameObject Cursor;
     public GameObject Selection;
@@ -27,14 +17,10 @@ public class EngineCtrl : MonoBehaviour {
 
         var terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);
         terrain.AddComponent<TerrainCtrl>();
-        foreach (var item in Manager.Instance.Buildings) {
-            OnAddBuilding(item);
-        }
-        Manager.Instance.OnAddBuilding = OnAddBuilding;
     }
 
-    void OnAddBuilding(Building building) {
-        building.gameObject = GameObject.CreatePrimitive(models[building.type.model]);
+    void AttachGameObject(Building building) {
+        building.GameObject = GameObject.CreatePrimitive(Definitions.models[building.type.name]);
     }
 
     void Update() {
@@ -42,29 +28,29 @@ public class EngineCtrl : MonoBehaviour {
         Cursor.transform.position = Manager.Instance.HoverPoint;
 
         foreach (var item in Manager.Instance.Buildings) {
-            var obj = item.gameObject;
+            if (item.GameObject == null) AttachGameObject(item);
+            var obj = item.GameObject;
             var height = item.type.height;
-            if (obj == null) print("GAMEOBJECT IS NULL");
-            obj.transform.position = Manager.Instance.Terrain.GetCellFloor(item.i, item.j);
+            obj.transform.position = Game.Terrain.GetCellFloor(item.Cell);
             obj.transform.position += new Vector3(item.type.w / 2, height / 2, item.type.h / 2);
-            obj.transform.localScale = new Vector3(1, height * item.buildProgress, 1);
-            var material = item.gameObject.GetComponent<Renderer>().material;
-            material.color = item.enabled ? colors[item.type.model] : rgb(0x555);
-            if (item.buildProgress < 1) { material.color = rgb(0xDDD); }
+            obj.transform.localScale = new Vector3(1, height * item.BuildProgress, 1);
+            var material = item.GameObject.GetComponent<Renderer>().material;
+            material.color = item.IsEnabled ? Definitions.colors[item.type.name] : rgb(0x555);
+            if (item.BuildProgress < 1) { material.color = rgb(0xDDD); }
         }
 
         InputFilter.Update();
         if (InputFilter.IsStartOfTap && Input.mousePosition.x > 100) {
-            Manager.Instance.SelectedCell = Manager.Instance.GridAtPoint(Manager.Instance.HoverPoint);
+            Game.SelectCell();
             var selected = Manager.Instance.SelectedCell;
             
-            var isBuildable = Manager.Instance.Terrain.Slope(selected.i, selected.j) < 0.25f;
+            var isBuildable = Game.Terrain.Slope(selected.i, selected.j) < 0.25f;
             Selection.transform.position = new Vector3(selected.i, 0, selected.j);
             Selection.GetComponent<MeshFilter>().mesh.vertices = new Vector3[]{
-                new Vector3(0, Manager.Instance.Terrain.height[selected.i, selected.j] + 0.1f, 0),
-                new Vector3(1, Manager.Instance.Terrain.height[selected.i+1, selected.j] + 0.1f, 0),
-                new Vector3(0, Manager.Instance.Terrain.height[selected.i, selected.j+1] + 0.1f, 1),
-                new Vector3(1, Manager.Instance.Terrain.height[selected.i+1, selected.j+1] + 0.1f, 1)
+                new Vector3(0, Game.Terrain.height[selected.i, selected.j] + 0.02f, 0),
+                new Vector3(1, Game.Terrain.height[selected.i+1, selected.j] + 0.02f, 0),
+                new Vector3(0, Game.Terrain.height[selected.i, selected.j+1] + 0.02f, 1),
+                new Vector3(1, Game.Terrain.height[selected.i+1, selected.j+1] + 0.02f, 1)
             };
             Selection.GetComponent<MeshFilter>().mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
             Selection.GetComponent<Renderer>().material.color = isBuildable ? rgb(0xFF0) : rgb(0xF00);

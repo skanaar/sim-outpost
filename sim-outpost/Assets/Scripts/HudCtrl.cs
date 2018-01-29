@@ -10,6 +10,17 @@ public class HudCtrl : MonoBehaviour {
 	}
 	
 	void Update () {
-        text.text = Manager.Instance.Commodities.HudString;
+        var str = Manager.Instance.Commodities.HudString;
+        var building = Manager.Instance.SelectedBuilding;
+        if (building != null) {
+            str = str + string.Join("\n", new string[]{
+                "\n------",
+                building.type.name,
+                (building.IsEnabled ? "Enabled" : "Disabled"),
+                (building.IsSupplied ? "Running" : "Not Supplied"),
+                building.type.turnover.HudString
+            });
+        }
+        text.text = str;
 	}
 }
