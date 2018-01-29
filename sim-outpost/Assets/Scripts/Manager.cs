@@ -5,14 +5,16 @@ using UnityEngine;
 
 public class Manager {
 
-    public TerrainGrid Terrain { get; } = new TerrainGrid(21);
+    public TerrainGrid Terrain { get; } = new TerrainGrid(40);
     public List<Building> Buildings { get; } = new List<Building>();
+    public List<Item> Items { get; } = new List<Item>();
 
     public static Manager Instance { get; private set; } = new Manager();
 
     public Attr Commodities { get; set; } = Definitions.StartingCommodities;
     public Vector3 HoverPoint { get; set; } = new Vector3(0, 0, 0);
-    public Cell SelectedCell { get; set; } = new Cell{ i = -1, j = -1};
+    public Cell SelectedCell { get; set; } = new Cell { i = -1, j = -1 };
+    public bool SelectedCellIsBuildable { get; set; } = false;
     public Building SelectedBuilding { get; set; } = null;
 
     public Cell GridAtPoint(Vector3 p) {
@@ -29,7 +31,7 @@ public class Manager {
         }
         var building = new Building { type = type, Cell = cell };
         Buildings.Add(building);
-        SelectedBuilding = building;
+        SelectCell();
     }
 
     public void Update(float deltaTime) {
@@ -39,6 +41,9 @@ public class Manager {
                 building.IsSupplied = (Attr.Zero <= building.type.turnover + Commodities);
                 if (building.IsSupplied && building.IsEnabled) {
                     Commodities = Commodities + deltaTime * building.type.turnover;
+                    foreach (var aspect in building.type.Aspects) {
+                        aspect.Update(deltaTime, building, this);
+                    }
                 }
             }
             else {
@@ -50,10 +55,24 @@ public class Manager {
                 }
             }
         }
+        foreach (var item in Items) {
+            var viability = Terrain.Viability[(int)item.Pos.x, (int)item.Pos.z];
+            if (viability < 0.25f) {
+                item.IsDead = true;
+            }
+            item.Age = Math.Min(item.Age + viability * deltaTime, item.Type.MaxAge);
+        }
+        if (Items.Count < 80 && UnityEngine.Random.value < deltaTime) {
+            Items.Add(new Item{
+                Type = Definitions.tree,
+                Pos = Terrain.RandomPos()
+            });
+        }
     }
 
     internal void SelectCell() {
         SelectedCell = GridAtPoint(HoverPoint);
         SelectedBuilding = Buildings.FirstOrDefault(e => e.IsOccupying(SelectedCell));
+        SelectedCellIsBuildable = Terrain.Slope(SelectedCell.i, SelectedCell.j) < 0.25f && SelectedBuilding == null;
     }
 }

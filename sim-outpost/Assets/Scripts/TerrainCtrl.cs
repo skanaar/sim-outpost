@@ -10,7 +10,7 @@ public class TerrainCtrl : MonoBehaviour {
     void Start() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
         GetComponent<Renderer>().material = new Material(Shader.Find("Low Poly"));
-        GetComponent<Renderer>().material.color = rgb(0x4A4);
+        GetComponent<Renderer>().material.color = rgb(0x6A6);
         gameObject.AddComponent<MeshCollider>();
         gameObject.layer = TerrainLayer;
     }
@@ -20,7 +20,7 @@ public class TerrainCtrl : MonoBehaviour {
         var colors = new Color[res * res];
         for (int i = 0; i < res; i++) {
             for (int j = 0; j < res; j++) {
-                var h = Terrain.height[i, j];
+                var h = Terrain.Height[i, j];
                 vertices[i + res * j] = new Vector3(i, h, j);
                 colors[i + res * j] = lerp(Terrain.Spectrum, h / Terrain.MaxHeight);
             }
@@ -63,7 +63,7 @@ public class TerrainCtrl : MonoBehaviour {
         var colors = new Color[res * res * 4];
         for (int i = 0; i < res; i++) {
             for (int j = 0; j < res; j++) {
-                var h = Terrain.height[i, j];
+                var h = Terrain.Height[i, j];
                 vertices[(i + res * j) * 4 + 0] = new Vector3(i + 0, h, j + 0);
                 vertices[(i + res * j) * 4 + 1] = new Vector3(i + 1, h, j + 0);
                 vertices[(i + res * j) * 4 + 2] = new Vector3(i + 0, h, j + 1);

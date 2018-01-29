@@ -6,37 +6,51 @@ public class Definitions {
     public static Attr StartingCommodities = new Attr { metal = 100, biosludge = 20, fuel = 100 };
 
     public static Dictionary<string, PrimitiveType> models = new Dictionary<string, PrimitiveType> {
-        { "Greenhouse", PrimitiveType.Cube },
         { "Reactor", PrimitiveType.Cylinder },
+        { "Turbine", PrimitiveType.Cylinder },
+        { "Greenhouse", PrimitiveType.Cube },
         { "Harvester", PrimitiveType.Capsule },
         { "Extractor", PrimitiveType.Cylinder },
         { "Habitat", PrimitiveType.Capsule }
     };
 
     public static Dictionary<string, Color> colors = new Dictionary<string, Color> {
-        { "Greenhouse", new Color(0.5f, 1f, 0.5f) },
         { "Reactor", new Color(0.5f, 0.5f, 1f) },
+        { "Turbine", new Color(1f, 1f, 1f) },
+        { "Greenhouse", new Color(0.5f, 1f, 0.5f) },
         { "Harvester", new Color(0.5f, 1f, 0.5f) },
         { "Extractor", new Color(0.75f, 0.75f, 1f) },
         { "Habitat", new Color(1f, 0.5f, 0.5f)}
     };
 
+    public static ItemType tree = new ItemType {
+        Name = "Tree",
+        Kind = ItemKind.Plant,
+        Contents = new Attr{ biomass = 10, biosludge = 10 },
+        MaxAge = 10
+    };
+
     public static BuildingType reactor = new BuildingType {
         name = "Reactor",
         model = "cylinder",
-        height = 1f,
-        w = 1,
-        h = 1,
+        height = 0.75f,
         turnover = new Attr { energy = 2, fuel = -1 },
         cost = new Attr { metal = 30 },
         buildTime = 10
+    };
+    public static BuildingType turbine = new BuildingType {
+        name = "Turbine",
+        model = "cylinder",
+        height = 1.5f,
+        turnover = new Attr { energy = 1 },
+        cost = new Attr { metal = 10 },
+        buildTime = 2,
+        Aspects = new List<BuildingAspect>{ new WindTurbineAspect() }
     };
     public static BuildingType extractor = new BuildingType {
         name = "Extractor",
         model = "cylinder",
         height = 0.5f,
-        w = 1,
-        h = 1,
         turnover = new Attr { energy = -2, metal = 1 },
         cost = new Attr { metal = 10 },
         buildTime = 3
@@ -45,18 +59,15 @@ public class Definitions {
         name = "Harvester",
         model = "capsule",
         height = 0.5f,
-        w = 1,
-        h = 1,
-        turnover = new Attr { energy = -1, biosludge = 1 },
+        turnover = new Attr { energy = -1 },
         cost = new Attr { metal = 10 },
-        buildTime = 3
+        buildTime = 3,
+        Aspects = new List<BuildingAspect>{ new TreeHarvesterAspect() }
     };
     public static BuildingType greenhouse = new BuildingType {
         name = "Greenhouse",
         model = "block",
         height = 0.5f,
-        w = 1,
-        h = 1,
         turnover = new Attr { food = 3, oxygen = 1 },
         cost = new Attr { biosludge = 3, metal = 2 },
         buildTime = 2
@@ -65,8 +76,6 @@ public class Definitions {
         name = "Habitat",
         model = "capsule",
         height = 1f,
-        w = 1,
-        h = 1,
         turnover = new Attr { food = -2, oxygen = -1 },
         cost = new Attr { food = 3, metal = 10 },
         buildTime = 8
@@ -74,6 +83,7 @@ public class Definitions {
 
     public static List<BuildingType> types = new List<BuildingType> {
         reactor,
+        turbine,
         greenhouse,
         habitat,
         harvester,

@@ -23,12 +23,14 @@ public class CameraCtrl : MonoBehaviour {
                 Manager.Instance.SelectedBuilding.IsEnabled = !Manager.Instance.SelectedBuilding.IsEnabled;
             }
         }
-        for (int i = 0; i < Definitions.types.Count; i++) {
-            var type = Definitions.types[i];
-            var didClick = GUI.Button(new Rect(10, 50 + 40 * i, 100, 30), type.name);
-            if (didClick) {
-                InputFilter.AbortTap();
-                Manager.Instance.StartBuild(type);
+        if (Manager.Instance.SelectedCellIsBuildable) {
+            for (int i = 0; i < Definitions.types.Count; i++) {
+                var type = Definitions.types[i];
+                var didClick = GUI.Button(new Rect(10, 50 + 40 * i, 100, 30), type.name);
+                if (didClick) {
+                    InputFilter.AbortTap();
+                    Manager.Instance.StartBuild(type);
+                }
             }
         }
     }
