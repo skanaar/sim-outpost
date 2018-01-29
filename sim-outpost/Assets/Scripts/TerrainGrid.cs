@@ -5,7 +5,8 @@ using static Util;
 public struct Cell {
     public int i;
     public int j;
-    public Vector3 ToVector => new Vector3(i, 0, j); 
+    public Vector3 ToVector => new Vector3(i, 0, j);
+    public Vector3 Center => new Vector3(i+0.5f, 0, j+ 0.5f);
 }
 
 public static class ScalarFieldExtensions {

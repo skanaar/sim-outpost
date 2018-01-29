@@ -4,12 +4,13 @@ using UnityEngine.UI;
 public class HudCtrl : MonoBehaviour {
 
     Text text;
+    Manager Game => Manager.Instance;
 
 	void Start () {
         text = gameObject.GetComponent<Text>(); 
 	}
 	
 	void Update () {
-        text.text = Manager.Instance.Commodities.HudString;
-	}
+        text.text = Game.Commodities.HudString;
+    }
 }

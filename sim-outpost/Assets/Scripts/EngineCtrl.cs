@@ -17,11 +17,15 @@ public class EngineCtrl : MonoBehaviour {
         Selection = GameObject.CreatePrimitive(PrimitiveType.Quad);
 
         var terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        terrain.AddComponent<TerrainCtrl>();
+        Manager.Instance.TerrainController = terrain.AddComponent<TerrainCtrl>();
     }
 
     void AttachGameObject(Building building) {
         building.GameObject = GameObject.CreatePrimitive(Definitions.models[building.type.name]);
+        if (building.type.name == "Turbine")
+            building.GameObject.GetComponent<MeshFilter>().mesh = Models.turbine;
+        if (building.type.name == "Greenhouse")
+            building.GameObject.GetComponent<MeshFilter>().mesh = Models.greenhouse;
     }
 
     void AttachGameObject(Item building) {
@@ -37,7 +41,7 @@ public class EngineCtrl : MonoBehaviour {
             var obj = e.GameObject;
             var height = e.type.height;
             obj.transform.position = Game.Terrain.GetCellFloor(e.Cell);
-            obj.transform.position += new Vector3(e.type.w / 2, height / 2, e.type.h / 2);
+            obj.transform.position += new Vector3(e.type.w / 2, 0, e.type.h / 2);
             obj.transform.localScale = new Vector3(1, height * e.BuildProgress, 1);
             var material = e.GameObject.GetComponent<Renderer>().material;
             material.color = e.IsEnabled && e.IsSupplied ? Definitions.colors[e.type.name] : rgb(0x555);
@@ -67,13 +71,15 @@ public class EngineCtrl : MonoBehaviour {
             var selected = Manager.Instance.SelectedCell;
 
             Selection.transform.position = new Vector3(selected.i, 0, selected.j);
-            Selection.GetComponent<MeshFilter>().mesh.vertices = new Vector3[]{
+            var mesh = Selection.GetComponent<MeshFilter>().mesh;
+            mesh.vertices = new Vector3[]{
                 new Vector3(0, Game.Terrain.Height[selected.i, selected.j] + 0.02f, 0),
                 new Vector3(1, Game.Terrain.Height[selected.i+1, selected.j] + 0.02f, 0),
                 new Vector3(0, Game.Terrain.Height[selected.i, selected.j+1] + 0.02f, 1),
                 new Vector3(1, Game.Terrain.Height[selected.i+1, selected.j+1] + 0.02f, 1)
             };
-            Selection.GetComponent<MeshFilter>().mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+            mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+            mesh.RecalculateBounds();
             Selection.GetComponent<Renderer>().material.color = Game.SelectedCellIsBuildable ? rgb(0xFF0) : rgb(0xF00);
         }
     }

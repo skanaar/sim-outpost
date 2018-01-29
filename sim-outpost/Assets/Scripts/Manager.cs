@@ -4,8 +4,9 @@ using System.Linq;
 using UnityEngine;
 
 public class Manager {
+    internal TerrainCtrl TerrainController;
 
-    public TerrainGrid Terrain { get; } = new TerrainGrid(40);
+    public TerrainGrid Terrain { get; } = new TerrainGrid(30);
     public List<Building> Buildings { get; } = new List<Building>();
     public List<Item> Items { get; } = new List<Item>();
 
@@ -32,6 +33,36 @@ public class Manager {
         var building = new Building { type = type, Cell = cell };
         Buildings.Add(building);
         SelectCell();
+    }
+
+    public void LevelTerrain(Cell cell) {
+        if (Terrain.Height.ContainsCell(cell) && Commodities.energy > 10) {
+            Commodities = Commodities + new Attr { energy = -10 };
+            var map = Terrain.Height;
+            var h = (
+                map[cell.i + 0, cell.j + 0] +
+                map[cell.i + 1, cell.j + 0] +
+                map[cell.i + 0, cell.j + 1] +
+                map[cell.i + 1, cell.j + 1]
+            ) / 4;
+            Terrain.Height[cell.i + 0, cell.j + 0] = (h + Terrain.Height[cell.i + 0, cell.j + 0]) / 2;
+            Terrain.Height[cell.i + 1, cell.j + 0] = (h + Terrain.Height[cell.i + 1, cell.j + 0]) / 2;
+            Terrain.Height[cell.i + 0, cell.j + 1] = (h + Terrain.Height[cell.i + 0, cell.j + 1]) / 2;
+            Terrain.Height[cell.i + 1, cell.j + 1] = (h + Terrain.Height[cell.i + 1, cell.j + 1]) / 2;
+            TerrainController?.UpdateMesh();
+
+        }
+    }
+
+    public void AdjustTerrain(Cell cell, float delta) {
+        if (Terrain.Height.ContainsCell(cell) && Commodities.energy > 10) {
+            Commodities = Commodities + new Attr { energy = -10 };
+            Terrain.Height[cell.i + 0, cell.j + 0] += delta;
+            Terrain.Height[cell.i + 1, cell.j + 0] += delta;
+            Terrain.Height[cell.i + 0, cell.j + 1] += delta;
+            Terrain.Height[cell.i + 1, cell.j + 1] += delta;
+            TerrainController?.UpdateMesh();
+        }
     }
 
     public void Update(float deltaTime) {

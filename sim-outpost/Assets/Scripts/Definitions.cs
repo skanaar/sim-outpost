@@ -41,7 +41,7 @@ public class Definitions {
     public static BuildingType turbine = new BuildingType {
         name = "Turbine",
         model = "cylinder",
-        height = 1.5f,
+        height = 1f,
         turnover = new Attr { energy = 1 },
         cost = new Attr { metal = 10 },
         buildTime = 2,
