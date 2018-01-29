@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static Util;
 
 public class Building {
     public BuildingType type;
@@ -29,12 +30,12 @@ public class BuildingType {
 
 public interface BuildingAspect {
     string Name { get; }
-    void Update(float deltaTime, Building self, Manager game);
+    void Update(float deltaTime, float time, Building self, Manager game);
 }
 
 public class TreeHarvesterAspect : BuildingAspect {
     public string Name => "Tree Harvesting";
-    public void Update(float deltaTime, Building self, Manager game) {
+    public void Update(float deltaTime, float time, Building self, Manager game) {
         if (self.IsEnabled && self.IsSupplied && Random.value * 2 < deltaTime) {
             var tree = game.Items
                            .Where(e => e.Type.Kind == ItemKind.Plant)
@@ -50,11 +51,23 @@ public class TreeHarvesterAspect : BuildingAspect {
 
 public class WindTurbineAspect : BuildingAspect {
     public string Name => "Wind Power Generator";
-    public void Update(float deltaTime, Building self, Manager game) {
+    public void Update(float deltaTime, float time, Building self, Manager game) {
         if (self.IsEnabled && self.IsSupplied) {
             var height = game.Terrain.Height.GetCell(self.Cell);
             // remove added turnover and put back wind-adjusted turnover
-            Attr generated =  deltaTime * (height - 1f) * self.type.turnover;
+            Attr generated = deltaTime * (height - 1f) * self.type.turnover;
+            game.Commodities = game.Commodities + generated;
+        }
+    }
+}
+
+public class SolarEnergyAspect : BuildingAspect {
+    public string Name => "Solar Power";
+    public void Update(float deltaTime, float time, Building self, Manager game) {
+        if (self.IsEnabled && self.IsSupplied) {
+            var influx = 0.5f + 0.5f * sin(time * 0.1f);
+            // remove added turnover and put back solar-cycle-adjusted turnover
+            Attr generated = deltaTime * influx * self.type.turnover;
             game.Commodities = game.Commodities + generated;
         }
     }

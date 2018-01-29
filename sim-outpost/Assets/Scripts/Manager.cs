@@ -73,7 +73,7 @@ public class Manager {
                 if (building.IsSupplied && building.IsEnabled) {
                     Commodities = Commodities + deltaTime * building.type.turnover;
                     foreach (var aspect in building.type.Aspects) {
-                        aspect.Update(deltaTime, building, this);
+                        aspect.Update(deltaTime, Time.time, building, this);
                     }
                 }
             }

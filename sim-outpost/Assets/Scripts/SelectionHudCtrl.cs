@@ -16,12 +16,12 @@ public class SelectionHudCtrl : MonoBehaviour {
         var building = Manager.Instance.SelectedBuilding;
         if (building != null) {
             str = string.Join("\n", new string[]{
-                building.type.name,
+                (building.BuildProgress < 1 ? "Constructing " : "") + building.type.name,
                 "------",
                 (building.IsEnabled ? "Enabled" : "Disabled"),
                 (building.IsSupplied ? "Running" : "Not Supplied"),
                 "-- turnover --",
-                building.type.turnover.HudString
+                (building.BuildProgress < 1 ? building.type.cost : building.type.turnover).HudString
             });
         }
         else if (Manager.Instance.Terrain.Height.ContainsCell(Manager.Instance.SelectedCell)) {

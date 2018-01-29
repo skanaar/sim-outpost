@@ -26,6 +26,12 @@ public class EngineCtrl : MonoBehaviour {
             building.GameObject.GetComponent<MeshFilter>().mesh = Models.turbine;
         if (building.type.name == "Greenhouse")
             building.GameObject.GetComponent<MeshFilter>().mesh = Models.greenhouse;
+        if (building.type.name == "Solar")
+            building.GameObject.GetComponent<MeshFilter>().mesh = Models.solar;
+        if (building.type.name == "Atmoplant")
+            building.GameObject.GetComponent<MeshFilter>().mesh = Models.atmoplant.mesh;
+        if (building.type.name == "Syntactor")
+            building.GameObject.GetComponent<MeshFilter>().mesh = Models.syntactor.mesh;
     }
 
     void AttachGameObject(Item building) {
@@ -42,7 +48,7 @@ public class EngineCtrl : MonoBehaviour {
             var height = e.type.height;
             obj.transform.position = Game.Terrain.GetCellFloor(e.Cell);
             obj.transform.position += new Vector3(e.type.w / 2, 0, e.type.h / 2);
-            obj.transform.localScale = new Vector3(1, height * e.BuildProgress, 1);
+            obj.transform.localScale = new Vector3(1, height * (0.2f + 0.8f*e.BuildProgress), 1);
             var material = e.GameObject.GetComponent<Renderer>().material;
             material.color = e.IsEnabled && e.IsSupplied ? Definitions.colors[e.type.name] : rgb(0x555);
             if (e.BuildProgress < 1) { material.color = rgb(0xDDD); }

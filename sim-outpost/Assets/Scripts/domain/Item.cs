@@ -63,19 +63,25 @@ public class Lathe {
 }
 
 public class Models {
-    public static Vector3 Vec(int x, int y) => new Vector3(x, y, 0);
-    public static Matrix4x4 Scale(double s) => Matrix4x4.Scale(new Vector3((float)s, (float)s, (float)s));
     public static Lathe ring = new Lathe(12, new Vector3[] {
         Vec(10, 0), Vec(12, 4), Vec(14, 0), Vec(12, -4), Vec(10, 0)
     });
     public static Lathe pillar = new Lathe(6, new Vector3[] { Vec(3, -14), Vec(4, -30) });
     public static Mesh turbine = Compose(
-        new CombineInstance { mesh = ring.mesh, transform = Scale(0.04) * Offset(0, 30) * Rot(0, -30) * Rot(90, 0) },
-        new CombineInstance { mesh = pillar.mesh, transform = Scale(0.04) * Offset(0, 30) }
+        new CombineInstance { mesh = ring.mesh, transform = Scale(0.4) * Offset(0, 3) * Rot(0, -30) * Rot(90, 0) },
+        new CombineInstance { mesh = pillar.mesh, transform = Scale(0.4) * Offset(0, 3) }
     );
-    public static Lathe dome = new Lathe(8, new Vector3[] { Vec(0, 9), Vec(7, 7), Vec(10, 3), Vec(10, 0) });
-    public static Mesh greenhouse = Compose(new CombineInstance { mesh = dome.mesh, transform = Scale(0.06) }
-   );
+
+    public static Lathe dome = new Lathe(8, new Vector3[] { Vec(0, 5), Vec(4, 4), Vec(5, 2), Vec(5, 0) });
+    public static Mesh greenhouse = Compose(new CombineInstance { mesh = dome.mesh, transform = Matrix4x4.identity });
+
+    public static Lathe dish = new Lathe(8, new Vector3[] { Vec(1, 9), Vec(7, 7), Vec(10, 3), Vec(7, 7), Vec(1, 9), Vec(0, -5) });
+    public static Mesh solar = Compose(new CombineInstance { mesh = dish.mesh, transform = Offset(0, 0.6f) * Rot(135, -30) * Scale(0.5) });
+
+    public static Lathe atmoplant = new Lathe(8, new Vector3[] { Vec(0, 13), Vec(1, 13), Vec(2, 15), Vec(3, 15), Vec(3, 7), Vec(5, 0) });
+
+    public static Lathe syntactor = new Lathe(8, new Vector3[] { Vec(0, 15), Vec(3, 15), Vec(4, 14), Vec(4, 5), Vec(3, 4), Vec(3, 0) });
+
     static Mesh Compose(params CombineInstance[] meshes){
         var mesh = new Mesh();
         mesh.CombineMeshes(meshes);
@@ -84,6 +90,8 @@ public class Models {
         mesh.RecalculateTangents();
         return mesh;
     }
+    public static Vector3 Vec(int x, int y) => 0.1f * new Vector3(x, y, 0);
+    public static Matrix4x4 Scale(double s) => Matrix4x4.Scale(new Vector3((float)s, (float)s, (float)s));
     public static Matrix4x4 Rot(double x, double y, double z = 0) {
         return Matrix4x4.Rotate(Quaternion.Euler(new Vector3((float)x, (float)y, (float)z)));
     }
