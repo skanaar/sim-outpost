@@ -1,7 +1,12 @@
 ﻿using System;
 using UnityEngine;
 
+public static class FloatExtensions {
+    public static bool NonZero(this float self) => Math.Abs(self) > 0.01f;
+}
+
 public static class Util {
+    public static Manager Game => Manager.Instance;
     public static float min(float a, float b) => Math.Min(a, b);
     public static float max(float a, float b) => Math.Max(a, b);
     public static float sin(float x) => (float)Math.Sin(x);

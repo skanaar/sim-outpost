@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using static Util;
 
 public struct Cell {
@@ -23,7 +22,11 @@ public static class ScalarFieldExtensions {
         return (1 - v) * a + v * b;
     }
     public static bool ContainsCell(this float[,] self, Cell cell) {
-        return cell.i >= 0 && cell.i < self.GetLength(0) - 1 && cell.j >= 0 && cell.j < self.GetLength(0) - 1;
+        return 
+            cell.i >= 0 &&
+            cell.i < self.GetLength(0) - 1 &&
+            cell.j >= 0 &&
+            cell.j < self.GetLength(0) - 1;
     }
 }
 
@@ -66,7 +69,9 @@ public class TerrainGrid {
         return new Vector3(i + 0.5f, h, j + 0.5f);
     }
 
-    internal float Slope(int i, int j) {
+    internal float Slope(Cell cell) {
+        var i = cell.i;
+        var j = cell.j;
         if (i < 0 || i > Res - 2 || j < 0 || j > Res - 2) {
             return 0;
         }
@@ -80,7 +85,7 @@ public class TerrainGrid {
     }
 
     internal Vector3 RandomPos() {
-        var p = new Vector2(UnityEngine.Random.value * Res, UnityEngine.Random.value * Res);
+        var p = new Vector2(Random.value * Res, Random.value * Res);
         return new Vector3(p.x, Height[(int)p.x,(int)p.y], p.y);
     }
 }

@@ -21,21 +21,28 @@ public class EngineCtrl : MonoBehaviour {
     }
 
     void AttachGameObject(Building building) {
-        building.GameObject = GameObject.CreatePrimitive(Definitions.models[building.type.name]);
         if (building.type.name == "Turbine")
             building.GameObject.GetComponent<MeshFilter>().mesh = Models.turbine;
-        if (building.type.name == "Greenhouse")
+        else if (building.type.name == "Greenhouse")
             building.GameObject.GetComponent<MeshFilter>().mesh = Models.greenhouse;
-        if (building.type.name == "Solar")
+        else if (building.type.name == "Solar")
             building.GameObject.GetComponent<MeshFilter>().mesh = Models.solar;
-        if (building.type.name == "Atmoplant")
+        else if (building.type.name == "Atmoplant")
             building.GameObject.GetComponent<MeshFilter>().mesh = Models.atmoplant.mesh;
-        if (building.type.name == "Syntactor")
+        else if (building.type.name == "Syntactor")
             building.GameObject.GetComponent<MeshFilter>().mesh = Models.syntactor.mesh;
+        else
+            building.GameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
     }
 
     void AttachGameObject(Item building) {
         building.GameObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+    }
+
+    Color BuildingColor(Building e) {
+        if (!e.IsEnabled || !e.IsSupplied) return rgb(0x555);
+        if (e.BuildProgress < 1) return rgb(0xDDD);
+        return Definitions.colors[e.type.name];
     }
 
     void Update() {
@@ -45,13 +52,10 @@ public class EngineCtrl : MonoBehaviour {
         foreach (var e in Manager.Instance.Buildings) {
             if (e.GameObject == null) AttachGameObject(e);
             var obj = e.GameObject;
-            var height = e.type.height;
             obj.transform.position = Game.Terrain.GetCellFloor(e.Cell);
             obj.transform.position += new Vector3(e.type.w / 2, 0, e.type.h / 2);
-            obj.transform.localScale = new Vector3(1, height * (0.2f + 0.8f*e.BuildProgress), 1);
-            var material = e.GameObject.GetComponent<Renderer>().material;
-            material.color = e.IsEnabled && e.IsSupplied ? Definitions.colors[e.type.name] : rgb(0x555);
-            if (e.BuildProgress < 1) { material.color = rgb(0xDDD); }
+            obj.transform.localScale = new Vector3(1, (0.2f + 0.8f*e.BuildProgress), 1);
+            e.GameObject.GetComponent<Renderer>().material.color = BuildingColor(e);
         }
 
         foreach (var item in Manager.Instance.Items.Where(e => !e.IsDead)) {
@@ -74,19 +78,20 @@ public class EngineCtrl : MonoBehaviour {
         InputFilter.Update();
         if (InputFilter.IsStartOfTap && Input.mousePosition.x > 100) {
             Game.SelectCell();
-            var selected = Manager.Instance.SelectedCell;
+            var sel = Manager.Instance.SelectedCell;
 
-            Selection.transform.position = new Vector3(selected.i, 0, selected.j);
+            Selection.transform.position = new Vector3(sel.i, 0, sel.j);
             var mesh = Selection.GetComponent<MeshFilter>().mesh;
             mesh.vertices = new Vector3[]{
-                new Vector3(0, Game.Terrain.Height[selected.i, selected.j] + 0.02f, 0),
-                new Vector3(1, Game.Terrain.Height[selected.i+1, selected.j] + 0.02f, 0),
-                new Vector3(0, Game.Terrain.Height[selected.i, selected.j+1] + 0.02f, 1),
-                new Vector3(1, Game.Terrain.Height[selected.i+1, selected.j+1] + 0.02f, 1)
+                new Vector3(0, Game.Terrain.Height[sel.i+0, sel.j+0] + 0.02f, 0),
+                new Vector3(1, Game.Terrain.Height[sel.i+1, sel.j+0] + 0.02f, 0),
+                new Vector3(0, Game.Terrain.Height[sel.i+0, sel.j+1] + 0.02f, 1),
+                new Vector3(1, Game.Terrain.Height[sel.i+1, sel.j+1] + 0.02f, 1)
             };
             mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
             mesh.RecalculateBounds();
-            Selection.GetComponent<Renderer>().material.color = Game.SelectedCellIsBuildable ? rgb(0xFF0) : rgb(0xF00);
+            var selectionColor = Game.SelectedCellIsBuildable ? rgb(0xFF0) : rgb(0xF00);
+            Selection.GetComponent<Renderer>().material.color = selectionColor;
         }
     }
 }

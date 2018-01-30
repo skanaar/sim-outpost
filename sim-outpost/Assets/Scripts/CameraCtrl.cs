@@ -32,7 +32,7 @@ public class CameraCtrl : MonoBehaviour {
             if (Game.SelectedCellIsBuildable) {
                 for (int i = 0; i < Definitions.types.Count; i++) {
                     var type = Definitions.types[i];
-                    var didClick = GUI.Button(new Rect(10, 110 + 30 * i, 100, 20), type.name);
+                    var didClick = GUI.Button(new Rect(10, 110+30*i, 100, 20), type.name);
                     if (didClick) {
                         InputFilter.AbortTap();
                         Game.StartBuild(type);

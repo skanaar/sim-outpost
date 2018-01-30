@@ -12,19 +12,18 @@ public class Building {
     public GameObject GameObject;
 
     public bool IsOccupying(Cell cell) {
-        return cell.i >= Cell.i && cell.i < Cell.i + type.w && cell.j >= Cell.j && cell.j < Cell.j + type.h;
+        return cell.i >= Cell.i && cell.i < Cell.i + type.w &&
+               cell.j >= Cell.j && cell.j < Cell.j + type.h;
     }
 }
 
 public class BuildingType {
     public string name;
-    public float height;
     public int w = 1;
     public int h = 1;
     public Attr turnover;
     public Attr cost;
     public float buildTime;
-    public string model;
     public List<BuildingAspect> Aspects = new List<BuildingAspect>();
 }
 
@@ -34,12 +33,14 @@ public interface BuildingAspect {
 }
 
 public class TreeHarvesterAspect : BuildingAspect {
+    float Range => 7;
     public string Name => "Tree Harvesting";
     public void Update(float deltaTime, float time, Building self, Manager game) {
         if (self.IsEnabled && self.IsSupplied && Random.value * 2 < deltaTime) {
+            var pos = self.Cell.ToVector;
             var tree = game.Items
                            .Where(e => e.Type.Kind == ItemKind.Plant)
-                           .FirstOrDefault(e => (e.Pos - self.Cell.ToVector).magnitude < 7);
+                           .FirstOrDefault(e => (e.Pos - pos).magnitude < Range);
             if (tree != null) {
                 tree.IsDead = true;
                 Attr contents = (tree.Age / tree.Type.MaxAge) * tree.Type.Contents;

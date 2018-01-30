@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static Util;
 
 public class SelectionHudCtrl : MonoBehaviour {
 
@@ -12,21 +13,27 @@ public class SelectionHudCtrl : MonoBehaviour {
     }
 
     void Update() {
-        var str = string.Empty;
-        var building = Manager.Instance.SelectedBuilding;
-        if (building != null) {
-            str = string.Join("\n", new string[]{
-                (building.BuildProgress < 1 ? "Constructing " : "") + building.type.name,
-                "------",
-                (building.IsEnabled ? "Enabled" : "Disabled"),
-                (building.IsSupplied ? "Running" : "Not Supplied"),
-                "-- turnover --",
-                (building.BuildProgress < 1 ? building.type.cost : building.type.turnover).HudString
-            });
+        var e = Game.SelectedBuilding;
+        if (e != null) {
+            text.text = BuildingDesc(e);
         }
-        else if (Manager.Instance.Terrain.Height.ContainsCell(Manager.Instance.SelectedCell)) {
-            str = "height " + (int)(10 * Manager.Instance.Terrain.Height.GetCell(Manager.Instance.SelectedCell));
+        else if (Game.Terrain.Height.ContainsCell(Game.SelectedCell)) {
+            text.text = CellDesc(Manager.Instance.SelectedCell);
         }
-        text.text = str;
+    }
+
+    private static string CellDesc(Cell cell) {
+        return "height " + (int)(10 * Game.Terrain.Height.GetCell(cell));
+    }
+
+    string BuildingDesc(Building e) {
+        return string.Join("\n", new string[]{
+            (e.BuildProgress < 1 ? "Constructing " : "") + e.type.name,
+            "------",
+            (e.IsEnabled ? "Enabled" : "Disabled"),
+            (e.IsSupplied ? "Running" : "Not Supplied"),
+            "-- turnover --",
+            (e.BuildProgress < 1 ? e.type.cost : e.type.turnover).HudString
+        });
     }
 }

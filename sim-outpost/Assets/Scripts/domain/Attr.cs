@@ -51,9 +51,7 @@ public struct Attr {
                 new KeyValue{ Name = "chems", Value = chems },
                 new KeyValue{ Name = "food", Value = food },
                 new KeyValue{ Name = "energy", Value = energy },
-#pragma warning disable RECS0018 // Comparison of floating point numbers with equality operator
-            }.Where(e => e.Value != 0).Select(e => e.Name + " " + (int)e.Value));
-#pragma warning restore RECS0018 // Comparison of floating point numbers with equality operator
+            }.Where(e => e.Value.NonZero()).Select(e => e.Name + " " + (int)e.Value));
         }
     }
 
