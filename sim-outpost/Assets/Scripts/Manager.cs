@@ -50,7 +50,6 @@ public class Manager {
             grid[cell.i+0, cell.j+1] = (h + grid[cell.i+0, cell.j+1]) / 2;
             grid[cell.i+1, cell.j+1] = (h + grid[cell.i+1, cell.j+1]) / 2;
             TerrainController?.UpdateMesh();
-
         }
     }
 

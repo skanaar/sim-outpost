@@ -18,9 +18,13 @@ public class EngineCtrl : MonoBehaviour {
 
         var terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Manager.Instance.TerrainController = terrain.AddComponent<TerrainCtrl>();
+
+        var water = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        water.AddComponent<WaterCtrl>();
     }
 
     void AttachGameObject(Building building) {
+        building.GameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
         if (building.type.name == "Turbine")
             building.GameObject.GetComponent<MeshFilter>().mesh = Models.turbine;
         else if (building.type.name == "Greenhouse")
@@ -31,12 +35,10 @@ public class EngineCtrl : MonoBehaviour {
             building.GameObject.GetComponent<MeshFilter>().mesh = Models.atmoplant.mesh;
         else if (building.type.name == "Syntactor")
             building.GameObject.GetComponent<MeshFilter>().mesh = Models.syntactor.mesh;
-        else
-            building.GameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
     }
 
-    void AttachGameObject(Item building) {
-        building.GameObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+    void AttachGameObject(Item e) {
+        e.GameObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
     }
 
     Color BuildingColor(Building e) {

@@ -37,21 +37,55 @@ public class TerrainGrid {
     public float MaxHeight { get; } = 10;
     public Color[] Spectrum { get; } = { rgb(0x88F), rgb(0x8F8), rgb(0x444), rgb(0xAAA) };
     public float[,] Height;
+    public float[,] Water;
     public float[,] Viability;
 
     public TerrainGrid(int res) {
         Res = res;
         Height = new float[Res, Res];
+        Water = new float[Res, Res];
         Viability = new float[Res, Res];
         for (int x = 0; x < Res; x++) {
+            var slope = 6 * x / (float)Res;
             for (int y = 0; y < Res; y++) {
-                Height[x, y] = MaxHeight * lerp(curve, noise[x, y]);
+                Height[x, y] = MaxHeight * lerp(curve, noise[x, y]) + slope;
                 Viability[x, y] = 1 - Height[x, y] / MaxHeight;
+                Water[x, y] = 0.1f;
             }
         }
     }
 
+    static float clamp(float low, float high, float val) {
+        return min(high, max(low, val));
+    }
+
     public void Update(float dt) {
+        var step = max(1, 10*dt) * 0.2f;
+        var diff = new float[Res, Res];
+        for (int x = 0; x < Res; x++) {
+            var x_ = max(0, x-1);
+            var x1 = min(Res-1, x+1);
+            for (int y = 0; y < Res; y++) {
+                var y_ = max(0, y-1);
+                var y1 = min(Res-1, y+1);
+                var h = Height[x, y] + Water[x, y];
+                var w = Water[x, y];
+                var d00 = clamp(0, w/4, h - (Height[x_, y]+Water[x_, y]));
+                var d10 = clamp(0, w/4, h - (Height[x1, y]+Water[x1, y]));
+                var d01 = clamp(0, w/4, h - (Height[x, y_]+Water[x, y_]));
+                var d11 = clamp(0, w/4, h - (Height[x, y1]+Water[x, y1]));
+                diff[x_, y] += d00;
+                diff[x1, y] += d10;
+                diff[x, y_] += d01;
+                diff[x, y1] += d11;
+                diff[x, y] -= d00 + d10 + d01 + d11;
+            }
+        }
+        for (int x = 0; x < Res; x++) {
+            for (int y = 0; y < Res; y++) {
+                Water[x, y] += step * diff[x, y] + step * 0.0001f;
+            }
+        }
     }
 
     public Vector3 GetCellFloor(Cell cell) => GetCellFloor(cell.i, cell.j);

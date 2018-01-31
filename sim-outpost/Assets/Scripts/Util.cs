@@ -7,6 +7,8 @@ public static class FloatExtensions {
 
 public static class Util {
     public static Manager Game => Manager.Instance;
+    public static int min(int a, int b) => Math.Min(a, b);
+    public static int max(int a, int b) => Math.Max(a, b);
     public static float min(float a, float b) => Math.Min(a, b);
     public static float max(float a, float b) => Math.Max(a, b);
     public static float sin(float x) => (float)Math.Sin(x);
