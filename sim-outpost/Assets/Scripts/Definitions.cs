@@ -16,7 +16,8 @@ public class Definitions {
         { "Extractor", Models.greenhouse },
         { "Habitat", Models.greenhouse },
         { "Atmoplant", Models.atmoplant.mesh },
-        { "Syntactor", Models.syntactor.mesh }
+        { "Syntactor", Models.syntactor.mesh },
+        { "Hydro", Models.syntactor.mesh }
     };
 
     public static Dictionary<string, Color> colors = new Dictionary<string, Color> {
@@ -28,7 +29,8 @@ public class Definitions {
         { "Extractor", new Color(0.75f, 0.75f, 1f) },
         { "Habitat", new Color(1f, 0.5f, 0.5f)},
         { "Atmoplant", new Color(0.8f, 0.8f, 1f)},
-        { "Syntactor", new Color(1f, 0.5f, 0f)}
+        { "Syntactor", new Color(1f, 0.5f, 0f)},
+        { "Hydro", new Color(1f, 0.5f, 1f)}
     };
 
     public static ItemType tree = new ItemType {
@@ -56,7 +58,7 @@ public class Definitions {
         turnover = new Attr { energy = 2 },
         cost = new Attr { metal = 1 },
         buildTime = 2,
-        Aspects = new List<BuildingAspect> { new SolarEnergyAspect() }
+        Aspects = new List<BuildingAspect> { new SolarPowerAspect() }
     };
     public static BuildingType extractor = new BuildingType {
         name = "Extractor",
@@ -95,11 +97,18 @@ public class Definitions {
         cost = new Attr { biosludge = 3, metal = 10 },
         buildTime = 4
     };
+    public static BuildingType hydro = new BuildingType {
+        name = "Hydro Power",
+        turnover = new Attr(),
+        cost = new Attr { metal = 10 },
+        buildTime = 2
+    };
 
     public static List<BuildingType> types = new List<BuildingType> {
         reactor,
         turbine,
         solar,
+        hydro,
         greenhouse,
         habitat,
         harvester,

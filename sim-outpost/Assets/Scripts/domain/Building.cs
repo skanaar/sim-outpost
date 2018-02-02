@@ -62,7 +62,7 @@ public class WindTurbineAspect : BuildingAspect {
     }
 }
 
-public class SolarEnergyAspect : BuildingAspect {
+public class SolarPowerAspect : BuildingAspect {
     public string Name => "Solar Power";
     public void Update(float deltaTime, float time, Building self, Manager game) {
         if (self.IsEnabled && self.IsSupplied) {
@@ -70,6 +70,42 @@ public class SolarEnergyAspect : BuildingAspect {
             // remove added turnover and put back solar-cycle-adjusted turnover
             Attr generated = deltaTime * influx * self.type.turnover;
             game.Commodities = game.Commodities + generated;
+        }
+    }
+}
+
+public class HydroPowerAspect : BuildingAspect {
+    int Range = 2;
+    float MaxIntake = 0.5f;
+    float EnergyPerWater = 10f;
+    public string Name => "Hydro Power";
+    public void Update(float deltaTime, float time, Building self, Manager game) {
+        if (self.IsEnabled && self.IsSupplied) {
+            var ground = game.Terrain.Height;
+            var res = game.Terrain.Height.GetLength(0);
+            var p = self.Cell;
+            var sink = Mathf.Infinity;
+            var sinkCell = new Cell();
+            for (int i = max(0, p.i-Range); i < min(res-1, p.i+Range); i++) {
+                for (int j = max(0, p.j-Range); j < min(res-1, p.j+Range); j++) {
+                    var level = ground[i, j] + game.Terrain.Water[i, j];
+                    if (level < sink) {
+                        sink = level;
+                        sinkCell = new Cell { i = i, j = j };
+                    }
+                }
+            }
+            for (int i = max(0, p.i-Range); i < min(res-1, p.i+Range); i++) {
+                for (int j = max(0, p.j-Range); j < min(res-1, p.j+Range); j++) {
+                    var water = ground[i, j] + game.Terrain.Water[i, j];
+                    if (sink < water) {
+                        var intake = min(game.Terrain.Water[i, j], MaxIntake);
+                        game.Terrain.Water[i, j] -= intake;
+                        game.Commodities += new Attr { energy = intake * EnergyPerWater };
+                        game.Terrain.Water[sinkCell.i, sinkCell.j] += intake;
+                    }
+                }
+            }
         }
     }
 }
