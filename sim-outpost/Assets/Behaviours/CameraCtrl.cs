@@ -7,6 +7,9 @@ public class CameraCtrl : MonoBehaviour {
         var terrain = Manager.Instance.Terrain;
         transform.position = terrain.GetCellFloor(terrain.Res / 2, terrain.Res / 2);
         transform.Rotate(new Vector3(25, 20, 0));
+        Camera cam = GetComponent<Camera>();
+        cam.farClipPlane = 200;
+        cam.nearClipPlane = -200;
 	}
 
     void Update() {

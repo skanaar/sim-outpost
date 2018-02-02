@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using static Util;
 
@@ -17,13 +15,13 @@ public class SelectionHudCtrl : MonoBehaviour {
         if (e != null) {
             text.text = BuildingDesc(e);
         }
-        else if (Game.Terrain.Height.ContainsCell(Game.SelectedCell)) {
+        else if (Game.Terrain.Height.field.ContainsCell(Game.SelectedCell)) {
             text.text = CellDesc(Manager.Instance.SelectedCell);
         }
     }
 
-    private static string CellDesc(Cell cell) {
-        return "height " + (int)(10 * Game.Terrain.Height.GetCell(cell));
+    static string CellDesc(Cell cell) {
+        return "height " + (int)(10 * Game.Terrain.Height[cell]);
     }
 
     string BuildingDesc(Building e) {

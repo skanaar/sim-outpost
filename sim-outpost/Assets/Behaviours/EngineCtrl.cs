@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using static Util;
 
@@ -25,16 +24,8 @@ public class EngineCtrl : MonoBehaviour {
 
     void AttachGameObject(Building building) {
         building.GameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        if (building.type.name == "Turbine")
-            building.GameObject.GetComponent<MeshFilter>().mesh = Models.turbine;
-        else if (building.type.name == "Greenhouse")
-            building.GameObject.GetComponent<MeshFilter>().mesh = Models.greenhouse;
-        else if (building.type.name == "Solar")
-            building.GameObject.GetComponent<MeshFilter>().mesh = Models.solar;
-        else if (building.type.name == "Atmoplant")
-            building.GameObject.GetComponent<MeshFilter>().mesh = Models.atmoplant.mesh;
-        else if (building.type.name == "Syntactor")
-            building.GameObject.GetComponent<MeshFilter>().mesh = Models.syntactor.mesh;
+        Mesh mesh = Definitions.models[building.type.name].Mesh;
+        building.GameObject.GetComponent<MeshFilter>().mesh = mesh;
     }
 
     void AttachGameObject(Item e) {
@@ -44,7 +35,7 @@ public class EngineCtrl : MonoBehaviour {
     Color BuildingColor(Building e) {
         if (!e.IsEnabled || !e.IsSupplied) return rgb(0x555);
         if (e.BuildProgress < 1) return rgb(0xDDD);
-        return Definitions.colors[e.type.name];
+        return Definitions.models[e.type.name].Color;
     }
 
     void Update() {

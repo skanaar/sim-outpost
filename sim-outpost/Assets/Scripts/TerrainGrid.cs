@@ -1,62 +1,30 @@
 ﻿using UnityEngine;
 using static Util;
 
-public struct Cell {
-    public int i;
-    public int j;
-    public Vector3 ToVector => new Vector3(i, 0, j);
-    public Vector3 Center => new Vector3(i+0.5f, 0, j+ 0.5f);
-}
-
-public static class ScalarFieldExtensions {
-    public static float GetCell(this float[,] self, Cell cell) {
-        return self[cell.i, cell.j];
-    }
-    public static float GetInterpolated(this float[,] self, Vector3 p) {
-        var cell = new Cell{ i = (int)p.x, j = (int)p.y};
-        if (self.ContainsCell(cell)) return 0;
-        var u = p.x - cell.i;
-        var v = p.z - cell.j;
-        var a = (1 - u) * self[cell.i, cell.j] + u * self[cell.i + 1, cell.j];
-        var b = (1 - u) * self[cell.i, cell.j + 1] + u * self[cell.i + 1, cell.j + 1];
-        return (1 - v) * a + v * b;
-    }
-    public static bool ContainsCell(this float[,] self, Cell cell) {
-        return 
-            cell.i >= 0 &&
-            cell.i < self.GetLength(0) - 1 &&
-            cell.j >= 0 &&
-            cell.j < self.GetLength(0) - 1;
-    }
-}
-
 public class TerrainGrid {
     Noise noise = new Noise{ scale = 10f, octaves = 4 };
     float[] curve = { 0.2f, 0.15f, 0.2f, 0.6f, 1 };
     public int Res { get; }
     public float MaxHeight { get; } = 10;
     public Color[] Spectrum { get; } = { rgb(0x88F), rgb(0x8F8), rgb(0x444), rgb(0xAAA) };
-    public float[,] Height;
-    public float[,] Water;
+    public Field Height;
+    public Field Water;
+    public PeakProminence PeakProminence => new PeakProminence(Height);
     public float[,] Viability;
 
     public TerrainGrid(int res) {
         Res = res;
-        Height = new float[Res, Res];
-        Water = new float[Res, Res];
+        Height = new Field(res);
+        Water = new Field(res);
         Viability = new float[Res, Res];
         for (int x = 0; x < Res; x++) {
             var slope = 6 * x / (float)Res;
             for (int y = 0; y < Res; y++) {
-                Height[x, y] = MaxHeight * lerp(curve, noise[x, y]) + slope;
+                Height.field[x, y] = MaxHeight * lerp(curve, noise[x, y]) + slope;
                 Viability[x, y] = 1 - Height[x, y] / MaxHeight;
-                Water[x, y] = 0.1f;
+                Water.field[x, y] = 0.1f;
             }
         }
-    }
-
-    static float clamp(float low, float high, float val) {
-        return min(high, max(low, val));
     }
 
     public void Update(float dt) {
@@ -83,7 +51,7 @@ public class TerrainGrid {
         }
         for (int x = 0; x < Res; x++) {
             for (int y = 0; y < Res; y++) {
-                Water[x, y] += step * diff[x, y] + step * 0.0001f;
+                Water.field[x, y] += step * diff[x, y] + step * 0.0001f;
             }
         }
     }
@@ -121,24 +89,5 @@ public class TerrainGrid {
     internal Vector3 RandomPos() {
         var p = new Vector2(Random.value * Res, Random.value * Res);
         return new Vector3(p.x, Height[(int)p.x,(int)p.y], p.y);
-    }
-}
-
-public class Noise {
-    public float scale = 5f;
-    public int octaves = 3;
-    public float falloff = 0.5f;
-    public float this[float x, float y] {
-        get {
-            float sum = 0;
-            float layer = 1f;
-            float opacity = 0.5f;
-            for (int i = 0; i < octaves; i++) {
-                sum += opacity * Mathf.PerlinNoise(x * layer / scale, y * layer / scale);
-                layer *= 2f;
-                opacity *= falloff;
-            }
-            return sum;
-        }
     }
 }

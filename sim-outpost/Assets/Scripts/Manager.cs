@@ -12,15 +12,13 @@ public class Manager {
 
     public static Manager Instance { get; private set; } = new Manager();
 
-    public Attr Commodities { get; set; } = Definitions.StartingCommodities;
+    public Attr Store { get; set; } = Definitions.StartingCommodities;
     public Vector3 HoverPoint { get; set; } = new Vector3(0, 0, 0);
     public Cell SelectedCell { get; set; } = new Cell { i = -1, j = -1 };
     public bool SelectedCellIsBuildable { get; set; } = false;
     public Building SelectedBuilding { get; set; } = null;
 
-    public Cell GridAtPoint(Vector3 p) {
-        return new Cell{ i = Mathf.RoundToInt(p.x-0.5f), j = Mathf.RoundToInt(p.z-0.5f) };
-    }
+    public float Time => UnityEngine.Time.time;
 
     public void StartBuild(BuildingType type) {
         AddBuilding(type, SelectedCell);
@@ -36,9 +34,10 @@ public class Manager {
     }
 
     public void LevelTerrain(Cell cell) {
-        if (Terrain.Height.ContainsCell(cell) && Commodities.energy > 10) {
-            Commodities = Commodities + new Attr { energy = -10 };
-            var grid = Terrain.Height;
+        if (Store.energy > 10) {
+            cell = Terrain.Height.CellWithin(cell);
+            Store = Store + new Attr { energy = -10 };
+            var grid = Terrain.Height.field;
             var h = (
                 grid[cell.i + 0, cell.j + 0] +
                 grid[cell.i + 1, cell.j + 0] +
@@ -54,12 +53,13 @@ public class Manager {
     }
 
     public void AdjustTerrain(Cell cell, float delta) {
-        if (Terrain.Height.ContainsCell(cell) && Commodities.energy > 10) {
-            Commodities = Commodities + new Attr { energy = -10 };
-            Terrain.Height[cell.i + 0, cell.j + 0] += delta;
-            Terrain.Height[cell.i + 1, cell.j + 0] += delta;
-            Terrain.Height[cell.i + 0, cell.j + 1] += delta;
-            Terrain.Height[cell.i + 1, cell.j + 1] += delta;
+        if (Store.energy > 10) {
+            cell = Terrain.Height.CellWithin(cell);
+            Store = Store + new Attr { energy = -10 };
+            Terrain.Height.field[cell.i + 0, cell.j + 0] += delta;
+            Terrain.Height.field[cell.i + 1, cell.j + 0] += delta;
+            Terrain.Height.field[cell.i + 0, cell.j + 1] += delta;
+            Terrain.Height.field[cell.i + 1, cell.j + 1] += delta;
             TerrainController?.UpdateMesh();
         }
     }
@@ -68,19 +68,19 @@ public class Manager {
         Terrain.Update(dt);
         foreach (var building in Buildings) {
             if (building.BuildProgress >= 1) {
-                building.IsSupplied = (Attr.Zero <= building.type.turnover + Commodities);
+                building.IsSupplied = (Attr.Zero <= building.type.turnover + Store);
                 if (building.IsSupplied && building.IsEnabled) {
-                    Commodities += dt * building.type.turnover;
+                    Store += dt * building.type.turnover;
                     foreach (var aspect in building.type.Aspects) {
-                        aspect.Update(dt, Time.time, building, this);
+                        aspect.Update(dt, building, this);
                     }
                 }
             }
             else {
                 var deltaCost = (-dt / building.type.buildTime) * building.type.cost;
-                building.IsSupplied = (Attr.Zero <= deltaCost + Commodities);
+                building.IsSupplied = (Attr.Zero <= deltaCost + Store);
                 if (building.IsSupplied && building.IsEnabled) {
-                    Commodities += deltaCost;
+                    Store += deltaCost;
                     building.BuildProgress += dt / building.type.buildTime;
                 }
             }
@@ -101,7 +101,7 @@ public class Manager {
     }
 
     public void SelectCell() {
-        SelectedCell = GridAtPoint(HoverPoint);
+        SelectedCell = new Cell(HoverPoint);
         SelectedBuilding = Buildings.FirstOrDefault(e => e.IsOccupying(SelectedCell));
         SelectedCellIsBuildable =
             Terrain.Slope(SelectedCell) < 0.25f && SelectedBuilding == null;

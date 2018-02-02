@@ -25,51 +25,54 @@ public class BuildingType {
     public Attr cost;
     public float buildTime;
     public List<BuildingAspect> Aspects = new List<BuildingAspect>();
+    public BuildingType(string name, params BuildingAspect[] aspects) {
+        this.name = name;
+        Aspects = aspects.ToList();
+    }
 }
 
 public interface BuildingAspect {
-    string Name { get; }
-    void Update(float deltaTime, float time, Building self, Manager game);
+    void Update(float dt, Building self, Manager game);
+}
+public class TurnoverAspect : BuildingAspect {
+    public void Update(float dt, Building self, Manager game) {
+        self.IsSupplied = (Attr.Zero <= self.type.turnover+game.Store);
+        if (self.IsSupplied && self.IsEnabled) {
+            game.Store += dt * self.type.turnover;
+        }
+    }
 }
 
 public class TreeHarvesterAspect : BuildingAspect {
     float Range => 7;
-    public string Name => "Tree Harvesting";
-    public void Update(float deltaTime, float time, Building self, Manager game) {
-        if (self.IsEnabled && self.IsSupplied && Random.value * 2 < deltaTime) {
+    public void Update(float dt, Building self, Manager game) {
+        if (self.IsEnabled && self.IsSupplied && Random.value * 2 < dt) {
             var pos = self.Cell.ToVector;
             var tree = game.Items
-                           .Where(e => e.Type.Kind == ItemKind.Plant)
-                           .FirstOrDefault(e => (e.Pos - pos).magnitude < Range);
+               .Where(e => e.Type.Kind == ItemKind.Plant)
+               .FirstOrDefault(e => (e.Pos - pos).magnitude < Range);
             if (tree != null) {
                 tree.IsDead = true;
-                Attr contents = (tree.Age / tree.Type.MaxAge) * tree.Type.Contents;
-                game.Commodities = game.Commodities + contents;
+                game.Store += (tree.Age/tree.Type.MaxAge)*tree.Type.Contents;
             }
         }
     }
 }
 
 public class WindTurbineAspect : BuildingAspect {
-    public string Name => "Wind Power Generator";
-    public void Update(float deltaTime, float time, Building self, Manager game) {
+    public void Update(float dt, Building self, Manager game) {
         if (self.IsEnabled && self.IsSupplied) {
-            var height = game.Terrain.Height.GetCell(self.Cell);
-            // remove added turnover and put back wind-adjusted turnover
-            Attr generated = deltaTime * (height - 1f) * self.type.turnover;
-            game.Commodities = game.Commodities + generated;
+            var height = clamp(0, 1, 0.25f + game.Terrain.PeakProminence[self.Cell]);
+            game.Store += dt * height * self.type.turnover;
         }
     }
 }
 
 public class SolarPowerAspect : BuildingAspect {
-    public string Name => "Solar Power";
-    public void Update(float deltaTime, float time, Building self, Manager game) {
+    public void Update(float dt, Building self, Manager game) {
         if (self.IsEnabled && self.IsSupplied) {
-            var influx = 0.5f + 0.5f * sin(time * 0.1f);
-            // remove added turnover and put back solar-cycle-adjusted turnover
-            Attr generated = deltaTime * influx * self.type.turnover;
-            game.Commodities = game.Commodities + generated;
+            var influx = 0.5f + 0.5f * sin(game.Time * 0.1f);
+            game.Store += dt * influx * self.type.turnover;
         }
     }
 }
@@ -79,10 +82,10 @@ public class HydroPowerAspect : BuildingAspect {
     float MaxIntake = 0.5f;
     float EnergyPerWater = 10f;
     public string Name => "Hydro Power";
-    public void Update(float deltaTime, float time, Building self, Manager game) {
+    public void Update(float dt, Building self, Manager game) {
         if (self.IsEnabled && self.IsSupplied) {
             var ground = game.Terrain.Height;
-            var res = game.Terrain.Height.GetLength(0);
+            var res = game.Terrain.Height.Res;
             var p = self.Cell;
             var sink = Mathf.Infinity;
             var sinkCell = new Cell();
@@ -100,9 +103,9 @@ public class HydroPowerAspect : BuildingAspect {
                     var water = ground[i, j] + game.Terrain.Water[i, j];
                     if (sink < water) {
                         var intake = min(game.Terrain.Water[i, j], MaxIntake);
-                        game.Terrain.Water[i, j] -= intake;
-                        game.Commodities += new Attr { energy = intake * EnergyPerWater };
-                        game.Terrain.Water[sinkCell.i, sinkCell.j] += intake;
+                        game.Terrain.Water.field[i, j] -= intake;
+                        game.Store += new Attr { energy = intake * EnergyPerWater };
+                        game.Terrain.Water.field[sinkCell.i, sinkCell.j] += intake;
                     }
                 }
             }

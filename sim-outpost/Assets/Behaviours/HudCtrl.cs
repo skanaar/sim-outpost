@@ -11,6 +11,6 @@ public class HudCtrl : MonoBehaviour {
 	}
 	
 	void Update () {
-        text.text = Game.Commodities.HudString;
+        text.text = Game.Store.HudString;
     }
 }
