@@ -5,7 +5,7 @@ using static Util;
 public class Definitions {
     
     public static Attr StartingCommodities = new Attr {
-        metal = 100, biosludge = 20, fuel = 100
+        metal = 100, biosludge = 20, fuel = 100, energy = 100
     };
 
     public struct Look {

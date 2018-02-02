@@ -78,7 +78,7 @@ public class SolarPowerAspect : BuildingAspect {
 }
 
 public class HydroPowerAspect : BuildingAspect {
-    int Range = 2;
+    int Range = 4;
     float MaxIntake = 0.5f;
     float EnergyPerWater = 10f;
     public string Name => "Hydro Power";
@@ -87,25 +87,25 @@ public class HydroPowerAspect : BuildingAspect {
             var ground = game.Terrain.Height;
             var res = game.Terrain.Height.Res;
             var p = self.Cell;
-            var sink = Mathf.Infinity;
-            var sinkCell = new Cell();
+            var low = Mathf.Infinity;
+            var lowCell = new Cell();
             for (int i = max(0, p.i-Range); i < min(res-1, p.i+Range); i++) {
                 for (int j = max(0, p.j-Range); j < min(res-1, p.j+Range); j++) {
                     var level = ground[i, j] + game.Terrain.Water[i, j];
-                    if (level < sink) {
-                        sink = level;
-                        sinkCell = new Cell { i = i, j = j };
+                    if (level < low) {
+                        low = level;
+                        lowCell = new Cell { i = i, j = j };
                     }
                 }
             }
             for (int i = max(0, p.i-Range); i < min(res-1, p.i+Range); i++) {
                 for (int j = max(0, p.j-Range); j < min(res-1, p.j+Range); j++) {
                     var water = ground[i, j] + game.Terrain.Water[i, j];
-                    if (sink < water) {
-                        var intake = min(game.Terrain.Water[i, j], MaxIntake);
+                    if (low < water) {
+                        var intake = dt * min(game.Terrain.Water[i, j], MaxIntake);
                         game.Terrain.Water.field[i, j] -= intake;
+                        game.Terrain.Water.field[lowCell.i, lowCell.j] += intake;
                         game.Store += new Attr { energy = intake * EnergyPerWater };
-                        game.Terrain.Water.field[sinkCell.i, sinkCell.j] += intake;
                     }
                 }
             }
