@@ -4,24 +4,25 @@ using System.Linq;
 using UnityEngine;
 
 public class Manager {
+    public static Manager Instance { get; private set; } = new Manager();
+
     internal TerrainCtrl TerrainController;
 
-    public TerrainGrid Terrain { get; } = new TerrainGrid(30);
+    public TerrainGrid Terrain;
     public List<Building> Buildings { get; } = new List<Building>();
     public List<Item> Items { get; } = new List<Item>();
-
-    public static Manager Instance { get; private set; } = new Manager();
+    public Field NeighbourDist;
 
     public Attr Store { get; set; } = Definitions.StartingCommodities;
     public Vector3 HoverPoint { get; set; } = new Vector3(0, 0, 0);
     public Cell SelectedCell { get; set; } = new Cell(0, 0);
-    public bool SelectedCellIsBuildable { get; set; } = false;
+    public bool IsBuildable(Cell cell) => Terrain.Slope(cell) < 0.25f && NeighbourDist[cell]<5;
     public Building SelectedBuilding { get; set; } = null;
-
     public float Time => UnityEngine.Time.time;
 
-    public void StartBuild(BuildingType type) {
-        AddBuilding(type, SelectedCell);
+    public Manager() {
+        Terrain = new TerrainGrid(30);
+        NeighbourDist = new Field(Terrain.Res);
     }
 
     public void AddBuilding(BuildingType type, Cell cell) {
@@ -30,37 +31,16 @@ public class Manager {
         }
         var building = new Building { type = type, Cell = cell };
         Buildings.Add(building);
-        SelectCell();
-    }
-
-    public void LevelTerrain(Cell cell) {
-        if (Store.energy > 10) {
-            cell = Terrain.Height.CellWithin(cell);
-            Store = Store + new Attr { energy = -10 };
-            var grid = Terrain.Height.field;
-            var h = (
-                grid[cell.i + 0, cell.j + 0] +
-                grid[cell.i + 1, cell.j + 0] +
-                grid[cell.i + 0, cell.j + 1] +
-                grid[cell.i + 1, cell.j + 1]
-            ) / 4;
-            grid[cell.i+0, cell.j+0] = (h + grid[cell.i+0, cell.j+0]) / 2;
-            grid[cell.i+1, cell.j+0] = (h + grid[cell.i+1, cell.j+0]) / 2;
-            grid[cell.i+0, cell.j+1] = (h + grid[cell.i+0, cell.j+1]) / 2;
-            grid[cell.i+1, cell.j+1] = (h + grid[cell.i+1, cell.j+1]) / 2;
-            TerrainController?.OnTerrainChange();
-        }
-    }
-
-    public void AdjustTerrain(Cell cell, float delta) {
-        if (Store.energy > 10) {
-            cell = Terrain.Height.CellWithin(cell);
-            Store = Store + new Attr { energy = -10 };
-            Terrain.Height.field[cell.i + 0, cell.j + 0] += delta;
-            Terrain.Height.field[cell.i + 1, cell.j + 0] += delta;
-            Terrain.Height.field[cell.i + 0, cell.j + 1] += delta;
-            Terrain.Height.field[cell.i + 1, cell.j + 1] += delta;
-            TerrainController?.OnTerrainChange();
+        SelectedBuilding = building;
+        for (int i = 0; i < Terrain.Res; i++) {
+            for (int j = 0; j < Terrain.Res; j++) {
+                NeighbourDist.field[i, j] = 0;
+                foreach (var e in Buildings) {
+                    var x = NeighbourDist.field[i, j];
+                    var dist = (e.Cell.ToVector - new Vector3(i, 0, j)).magnitude;
+                    NeighbourDist.field[i, j] = Math.Min(x, dist);
+                }
+            }
         }
     }
 
@@ -87,7 +67,5 @@ public class Manager {
     public void SelectCell() {
         SelectedCell = new Cell(HoverPoint);
         SelectedBuilding = Buildings.FirstOrDefault(e => e.IsOccupying(SelectedCell));
-        SelectedCellIsBuildable =
-            Terrain.Slope(SelectedCell) < 0.25f && SelectedBuilding == null;
     }
 }

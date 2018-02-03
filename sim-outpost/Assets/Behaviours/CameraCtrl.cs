@@ -23,22 +23,23 @@ public class CameraCtrl : MonoBehaviour {
 
     void OnGUI() {
         if (Game.SelectedBuilding == null) {
+            var terraform = new Terraform { Game = Game };
             if (GUI.Button(new Rect(10, 10, 100, 20), "Level")) {
-                Game.LevelTerrain(Game.SelectedCell);
+                terraform.LevelTerrain(Game.SelectedCell);
             }
             if (GUI.Button(new Rect(10, 40, 100, 20), "Raise")) {
-                Game.AdjustTerrain(Game.SelectedCell, 0.25f);
+                terraform.AdjustTerrain(Game.SelectedCell, 0.25f);
             }
             if (GUI.Button(new Rect(10, 70, 100, 20), "Lower")) {
-                Game.AdjustTerrain(Game.SelectedCell, -0.25f);
+                terraform.AdjustTerrain(Game.SelectedCell, -0.25f);
             }
-            if (Game.SelectedCellIsBuildable) {
+            if (Game.IsBuildable(Game.SelectedCell) && Game.SelectedBuilding == null) {
                 for (int i = 0; i < Definitions.types.Count; i++) {
                     var type = Definitions.types[i];
                     var didClick = GUI.Button(new Rect(10, 110+30*i, 100, 20), type.name);
                     if (didClick) {
                         InputFilter.AbortTap();
-                        Game.StartBuild(type);
+                        Game.AddBuilding(type, Game.SelectedCell);
                     }
                 }
             }

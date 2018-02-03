@@ -23,7 +23,14 @@ public struct Cell {
 public class Field {
     public readonly float[,] field;
     public int Res => field.GetLength(0);
-    public Field(int res) { field = new float[res, res]; }
+    public Field(int res, float value = 0) {
+        field = new float[res, res];
+        for (int i = 0; i < res; i++) {
+            for (int j = 0; j < res; j++) {
+                field[i, j] = value;
+            }
+        }
+    }
     public float this[int i, int j] => field[i, j];
     public float this[Cell cell] => field[cell.i, cell.j];
     public float this[Vector3 p] {
