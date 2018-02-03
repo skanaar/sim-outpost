@@ -14,7 +14,7 @@ public class Manager {
 
     public Attr Store { get; set; } = Definitions.StartingCommodities;
     public Vector3 HoverPoint { get; set; } = new Vector3(0, 0, 0);
-    public Cell SelectedCell { get; set; } = new Cell { i = -1, j = -1 };
+    public Cell SelectedCell { get; set; } = new Cell(0, 0);
     public bool SelectedCellIsBuildable { get; set; } = false;
     public Building SelectedBuilding { get; set; } = null;
 
@@ -68,12 +68,8 @@ public class Manager {
         Terrain.Update(dt);
         foreach (var building in Buildings) {
             if (building.BuildProgress >= 1) {
-                building.IsSupplied = (Attr.Zero <= building.type.turnover + Store);
-                if (building.IsSupplied && building.IsEnabled) {
-                    Store += dt * building.type.turnover;
-                    foreach (var aspect in building.type.Aspects) {
-                        aspect.Update(dt, building, this);
-                    }
+                foreach (var aspect in building.type.Aspects) {
+                    aspect.Update(dt, building, this);
                 }
             }
             else {

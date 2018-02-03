@@ -14,6 +14,7 @@ public class EngineCtrl : MonoBehaviour {
         Cursor.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
 
         Selection = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        Selection.AddComponent<SelectionCtrl>();
 
         var terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Manager.Instance.TerrainController = terrain.AddComponent<TerrainCtrl>();
@@ -69,22 +70,8 @@ public class EngineCtrl : MonoBehaviour {
         Manager.Instance.Items.RemoveAll(e => e.IsDead);
 
         InputFilter.Update();
-        if (InputFilter.IsStartOfTap && Input.mousePosition.x > 100) {
+        if (InputFilter.IsStartOfTap && Input.mousePosition.x > 110) {
             Game.SelectCell();
-            var sel = Manager.Instance.SelectedCell;
-
-            Selection.transform.position = new Vector3(sel.i, 0, sel.j);
-            var mesh = Selection.GetComponent<MeshFilter>().mesh;
-            mesh.vertices = new Vector3[]{
-                new Vector3(0, Game.Terrain.Height[sel.i+0, sel.j+0] + 0.02f, 0),
-                new Vector3(1, Game.Terrain.Height[sel.i+1, sel.j+0] + 0.02f, 0),
-                new Vector3(0, Game.Terrain.Height[sel.i+0, sel.j+1] + 0.02f, 1),
-                new Vector3(1, Game.Terrain.Height[sel.i+1, sel.j+1] + 0.02f, 1)
-            };
-            mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
-            mesh.RecalculateBounds();
-            var selectionColor = Game.SelectedCellIsBuildable ? rgb(0xFF0) : rgb(0xF00);
-            Selection.GetComponent<Renderer>().material.color = selectionColor;
         }
     }
 }

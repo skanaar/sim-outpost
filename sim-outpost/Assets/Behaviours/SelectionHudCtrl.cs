@@ -21,17 +21,22 @@ public class SelectionHudCtrl : MonoBehaviour {
     }
 
     static string CellDesc(Cell cell) {
-        return "height " + (int)(10 * Game.Terrain.Height[cell]);
+        return string.Join("\n", new string[]{
+            "height " + (int)(10 * Game.Terrain.Height[cell]),
+            "prominence " + new PeakProminence(Game.Terrain.Height)[cell].ToString("0.##")
+        });
     }
 
     string BuildingDesc(Building e) {
+        var inBuild = e.BuildProgress < 1;
         return string.Join("\n", new string[]{
-            (e.BuildProgress < 1 ? "Constructing " : "") + e.type.name,
+            (inBuild ? "Constructing " : "") + e.type.name,
             "------",
             (e.IsEnabled ? "Enabled" : "Disabled"),
             (e.IsSupplied ? "Running" : "Not Supplied"),
-            "-- turnover --",
-            (e.BuildProgress < 1 ? e.type.cost : e.type.turnover).HudString
+            "",
+            (inBuild ? "-- cost --" : "-- turnover --"),
+            (inBuild ? e.type.cost.HudString() : e.LastTurnover.HudString(true))
         });
     }
 }

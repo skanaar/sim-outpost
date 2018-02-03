@@ -37,22 +37,24 @@ public struct Attr {
         public override string ToString() => Name + " " + Value;
     }
 
-    public string HudString {
-        get {
-            return string.Join("\n", new KeyValue[]{
-                new KeyValue{ Name = "water", Value = water },
-                new KeyValue{ Name = "credits", Value = credits },
-                new KeyValue{ Name = "ore", Value = ore },
-                new KeyValue{ Name = "metal", Value = metal },
-                new KeyValue{ Name = "oxygen", Value = oxygen },
-                new KeyValue{ Name = "fuel", Value = fuel },
-                new KeyValue{ Name = "biosludge", Value = biosludge },
-                new KeyValue{ Name = "biomass", Value = biomass },
-                new KeyValue{ Name = "chems", Value = chems },
-                new KeyValue{ Name = "food", Value = food },
-                new KeyValue{ Name = "energy", Value = energy },
-            }.Where(e => e.Value.NonZero()).Select(e => e.Name + " " + (int)e.Value));
-        }
+    public string HudString(bool showDecimals = false) {
+        var format = showDecimals ? "0.#" : "0";
+        KeyValue[] lines = {
+            new KeyValue{ Name = "water", Value = water },
+            new KeyValue{ Name = "credits", Value = credits },
+            new KeyValue{ Name = "ore", Value = ore },
+            new KeyValue{ Name = "metal", Value = metal },
+            new KeyValue{ Name = "oxygen", Value = oxygen },
+            new KeyValue{ Name = "fuel", Value = fuel },
+            new KeyValue{ Name = "biosludge", Value = biosludge },
+            new KeyValue{ Name = "biomass", Value = biomass },
+            new KeyValue{ Name = "chems", Value = chems },
+            new KeyValue{ Name = "food", Value = food },
+            new KeyValue{ Name = "energy", Value = energy },
+        };
+        return string.Join("\n", lines
+                           .Where(e => e.Value.NonZero())
+                           .Select(e => e.Name + " " + e.Value.ToString(format)));
     }
 
     public static bool operator <=(Attr a, Attr b) {

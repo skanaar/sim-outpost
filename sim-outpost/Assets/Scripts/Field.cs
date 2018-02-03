@@ -2,9 +2,9 @@
 using static Util;
 
 public struct Cell {
-    public int i;
-    public int j;
-    public Cell(Vector3 vec): this((int)(vec.x-0.5f), (int)(vec.z-0.5f)) {}
+    public readonly int i;
+    public readonly int j;
+    public Cell(Vector3 vec): this((int)(vec.x), (int)(vec.z)) {}
     public Cell(int i, int j) {
         this.i = i;
         this.j = j;
@@ -12,17 +12,23 @@ public struct Cell {
     public Vector3 ToVector => new Vector3(i, 0, j);
     public Vector3 Center => new Vector3(i+0.5f, 0, j+ 0.5f);
     public Cell Add(int u, int v) => new Cell(i+u, j+v);
+    public static bool operator ==(Cell a, Cell b) => a.i == b.i && a.j == b.j;
+    public static bool operator !=(Cell a, Cell b) => !(a == b);
+    public override bool Equals(object obj) {
+        return !(obj == null || GetType() != obj.GetType()) && this == (Cell)obj;
+    }
+    public override int GetHashCode() => i + 31*j;
 }
 
 public class Field {
-    public float[,] field;
+    public readonly float[,] field;
     public int Res => field.GetLength(0);
     public Field(int res) { field = new float[res, res]; }
     public float this[int i, int j] => field[i, j];
     public float this[Cell cell] => field[cell.i, cell.j];
     public float this[Vector3 p] {
         get {
-            var cell = new Cell { i = (int)p.x, j = (int)p.y};
+            var cell = new Cell(p);
             var u = p.x - cell.i;
             var v = p.z - cell.j;
             var a = (1 - u)*this[cell.Add(0, 0)] + u*this[cell.Add(1, 0)];
@@ -36,7 +42,7 @@ public class Field {
 }
 
 public class FieldSum {
-    public Field A, B;
+    public readonly Field A, B;
     public FieldSum(Field a, Field b) {
         A = a;
         B = b;
@@ -65,6 +71,10 @@ class Gradient {
 public class FieldAverage {
     public int Radius = 4;
     public Field field;
+    public FieldAverage(Field field, int radius) {
+        this.field = field;
+        Radius = radius;
+    }
     public float this[Cell cell] {
         get {
             var iLow = max(0, cell.i-Radius);
@@ -77,7 +87,7 @@ public class FieldAverage {
                     sum += field[i, j];
                 }
             }
-            return sum/(Radius* Radius);
+            return sum/(4*Radius*Radius);
         }
     }
 }
@@ -89,13 +99,13 @@ public class PeakProminence {
         this.field = field;
     }
     public float this[Cell cell] =>
-        field[cell] - (new FieldAverage{ field=field, Radius=Radius })[cell];
+        field[cell] - (new FieldAverage(field, Radius))[cell];
 }
 
 
 public static class ScalarFieldExtensions {
     public static float GetInterpolated(this float[,] self, Vector3 p) {
-        var cell = new Cell { i = (int)p.x, j = (int)p.y };
+        var cell = new Cell(p);
         if (self.ContainsCell(cell)) return 0;
         var u = p.x - cell.i;
         var v = p.z - cell.j;
