@@ -43,7 +43,9 @@ public class Models {
     public static Lathe ring = new Lathe(12, new Vector3[] {
         Vec(10, 0), Vec(12, 4), Vec(14, 0), Vec(12, -4), Vec(10, 0)
     });
-    public static Lathe pillar = new Lathe(6, new Vector3[] { Vec(3, -14), Vec(4, -30) });
+    public static Lathe pillar = new Lathe(6, new Vector3[] {
+        Vec(0, -12), Vec(3, -14), Vec(4, -30)
+    });
     public static Mesh turbine = Compose(
         new CombineInstance {
             mesh = ring.mesh,
@@ -67,6 +69,9 @@ public class Models {
     });
     public static Mesh solar = Compose(new CombineInstance {
         mesh = dish.mesh, transform = Offset(0, 0.6f) * Rot(135, -30) * Scale(0.5)
+    });
+    public static Mesh relay = Compose(new CombineInstance {
+        mesh = pillar.mesh, transform = Scale(0.4) * Offset(0, 3)
     });
 
     public static Lathe atmoplant = new Lathe(8, new Vector3[] {

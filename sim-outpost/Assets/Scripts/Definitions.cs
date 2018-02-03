@@ -5,7 +5,7 @@ using static Util;
 public class Definitions {
     
     public static Attr StartingCommodities = new Attr {
-        metal = 100, biosludge = 20, fuel = 100, energy = 100
+        metal = 100, biosludge = 20, fuel = 100, energy = 100, water = 100
     };
 
     public struct Look {
@@ -17,11 +17,17 @@ public class Definitions {
         }
     }
 
+    public static Mesh Model(string name) {
+        return models[name].Mesh;
+    }
+
     public static Dictionary<string, Look> models = new Dictionary<string, Look> {
+        { "Relay", new Look(Models.relay, rgb(0xFFF)) },
         { "Reactor", new Look(Models.pillar.mesh, rgb(0x88F)) },
         { "Turbine", new Look(Models.turbine, rgb(0xFFF)) },
         { "Solar", new Look(Models.solar, rgb(0xFF0)) },
         { "Greenhouse", new Look(Models.greenhouse, rgb(0x8F8)) },
+        { "Hydroponics", new Look(Models.syntactor.mesh, rgb(0xAF8)) },
         { "Harvester", new Look(Models.greenhouse, rgb(0x8F8)) },
         { "Extractor", new Look(Models.greenhouse, rgb(0xCCF)) },
         { "Habitat", new Look(Models.greenhouse, rgb(0xF88)) },
@@ -38,6 +44,11 @@ public class Definitions {
     };
     
     public static List<BuildingType> types = new List<BuildingType> {
+        new BuildingType("Relay", new TurnoverAspect()) {
+            turnover = new Attr(),
+            cost = new Attr { metal = 5 },
+            buildTime = 2
+        },
         new BuildingType("Reactor", new TurnoverAspect()) {
             turnover = new Attr { energy = 2, fuel = -1 },
             cost = new Attr { metal = 30 },
@@ -46,7 +57,8 @@ public class Definitions {
         new BuildingType("Turbine", new WindTurbineAspect()) {
             turnover = new Attr { energy = 1 },
             cost = new Attr { metal = 10 },
-            buildTime = 2
+            buildTime = 2,
+            Predicate = new BuildPredicate.Windy()
         },
         new BuildingType("Solar", new SolarPowerAspect()) {
             turnover = new Attr { energy = 2 },
@@ -64,9 +76,15 @@ public class Definitions {
             buildTime = 3
         },
         new BuildingType("Greenhouse", new TurnoverAspect()) {
-            turnover = new Attr { food = 3, oxygen = 1 },
+            turnover = new Attr { food = 2, oxygen = 1 },
             cost = new Attr { biosludge = 3, metal = 2 },
             buildTime = 2
+        },
+        new BuildingType("Hydroponics", new TurnoverAspect()) {
+            turnover = new Attr { food = 4, water = -1, oxygen = 1 },
+            cost = new Attr { water = 10 },
+            buildTime = 1,
+            Predicate = new BuildPredicate.Upgrade{ From = "Greenhouse" }
         },
         new BuildingType("Habitat", new TurnoverAspect()) {
             turnover = new Attr { food = -2, oxygen = -1 },

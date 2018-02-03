@@ -3,14 +3,15 @@ using System.Linq;
 using UnityEngine;
 using static Util;
 
-public class Building {
+public class Building : Killable {
     public BuildingType type;
     public Cell Cell;
     public bool IsEnabled = true;
     public bool IsSupplied;
     public float BuildProgress;
     public Attr LastTurnover = Attr.Zero;
-    public GameObject GameObject;
+    public bool IsDead { get; set; }
+    public GameObject GameObject { get; set; }
 
     public bool IsProducing => BuildProgress >= 1 && IsEnabled && IsSupplied;
     public bool IsOccupying(Cell cell) {
@@ -38,6 +39,7 @@ public class BuildingType {
     public Attr cost;
     public float buildTime;
     public List<BuildingAspect> Aspects = new List<BuildingAspect>();
+    public BuildPredicate Predicate = new BuildPredicate.FlatGround();
     public BuildingType(string name, params BuildingAspect[] aspects) {
         this.name = name;
         Aspects = aspects.ToList();
@@ -140,6 +142,33 @@ public class HydroPowerAspect : BuildingAspect {
                     }
                 }
             }
+        }
+    }
+}
+
+public abstract class BuildPredicate {
+    public abstract bool CanBuild(Cell cell, Manager game);
+    public static bool IsEmpty(Cell cell, Manager game) {
+        return game.Buildings.All(e => e.Cell != cell);
+    }
+
+    public class Upgrade : BuildPredicate {
+        public string From;
+        public override bool CanBuild(Cell cell, Manager game) {
+            return game.Buildings.Any(e => e.Cell == cell && e.type.name == From);
+        }
+    }
+
+    public class FlatGround : BuildPredicate {
+        public override bool CanBuild(Cell cell, Manager game) {
+            return IsEmpty(cell, game) && game.Terrain.Slope(cell) < 0.25f;
+        }
+    }
+
+    public class Windy : BuildPredicate {
+        public override bool CanBuild(Cell cell, Manager game) {
+            var isPeak = new PeakProminence(game.Terrain.Height)[cell] > 0;
+            return IsEmpty(cell, game) && isPeak;
         }
     }
 }

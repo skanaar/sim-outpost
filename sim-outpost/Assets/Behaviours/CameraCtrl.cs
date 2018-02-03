@@ -33,20 +33,24 @@ public class CameraCtrl : MonoBehaviour {
             if (GUI.Button(new Rect(10, 70, 100, 20), "Lower")) {
                 terraform.AdjustTerrain(Game.SelectedCell, -0.25f);
             }
-            if (Game.IsBuildable(Game.SelectedCell) && Game.SelectedBuilding == null) {
-                for (int i = 0; i < Definitions.types.Count; i++) {
-                    var type = Definitions.types[i];
-                    var didClick = GUI.Button(new Rect(10, 110+30*i, 100, 20), type.name);
-                    if (didClick) {
-                        InputFilter.AbortTap();
-                        Game.AddBuilding(type, Game.SelectedCell);
-                    }
-                }
+            if (Game.NeighbourDist[Game.SelectedCell] > Game.BuildRange) {
+                return;
             }
         }
         else {
             if (GUI.Button(new Rect(10, 10, 100, 20), "Toggle")) {
                 Game.SelectedBuilding.IsEnabled = !Game.SelectedBuilding.IsEnabled;
+            }
+        }
+        var i = 0;
+        foreach (var type in Definitions.types) {
+            if (type.Predicate.CanBuild(Game.SelectedCell, Game)) {
+                i++;
+                var didClick = GUI.Button(new Rect(10, 110+30*i, 100, 20), type.name);
+                if (didClick) {
+                    InputFilter.AbortTap();
+                    Game.AddBuilding(type, Game.SelectedCell);
+                }
             }
         }
     }

@@ -39,7 +39,7 @@
 			o.Albedo = c.rgb;
 			// Metallic and smoothness come from slider variables
 			o.Metallic = _Metallic;
-			o.Smoothness = _Glossiness;
+			o.Smoothness = 0;
 			o.Alpha = c.a;
 		}
 		ENDCG

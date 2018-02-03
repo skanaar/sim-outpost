@@ -2,12 +2,9 @@
 using static Util;
 
 public class SelectionCtrl : MonoBehaviour {
-
-    Cell lastSelection = new Cell(0, 0);
-    
+       
 	void Update () {
         var cell = Manager.Instance.SelectedCell;
-        lastSelection = cell;
         gameObject.transform.position = new Vector3(cell.i, 0, cell.j);
         var mesh = gameObject.GetComponent<MeshFilter>().mesh;
         mesh.vertices = new Vector3[]{
@@ -18,7 +15,6 @@ public class SelectionCtrl : MonoBehaviour {
             };
         mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
         mesh.RecalculateBounds();
-        var color = Game.IsBuildable(Game.SelectedCell) ? rgb(0xFF0) : rgb(0xF00);
-        gameObject.GetComponent<Renderer>().material.color = color;
+        gameObject.GetComponent<Renderer>().material.color = rgb(0xFF0);
 	}
 }

@@ -19,6 +19,7 @@ public class Manager {
     public bool IsBuildable(Cell cell) => Terrain.Slope(cell) < 0.25f && NeighbourDist[cell]<5;
     public Building SelectedBuilding { get; set; } = null;
     public float Time => UnityEngine.Time.time;
+    public float BuildRange = 5;
 
     public Manager() {
         Terrain = new TerrainGrid(30);
@@ -26,15 +27,15 @@ public class Manager {
     }
 
     public void AddBuilding(BuildingType type, Cell cell) {
-        if (Buildings.Any(e => e.IsOccupying(cell))) {
-            return;
+        foreach (var e in Buildings.Where(e => e.IsOccupying(cell))) {
+            e.IsDead = true;
         }
         var building = new Building { type = type, Cell = cell };
         Buildings.Add(building);
         SelectedBuilding = building;
         for (int i = 0; i < Terrain.Res; i++) {
             for (int j = 0; j < Terrain.Res; j++) {
-                NeighbourDist.field[i, j] = 0;
+                NeighbourDist.field[i, j] = 1000;
                 foreach (var e in Buildings) {
                     var x = NeighbourDist.field[i, j];
                     var dist = (e.Cell.ToVector - new Vector3(i, 0, j)).magnitude;
@@ -56,7 +57,7 @@ public class Manager {
             }
             item.Age = Math.Min(item.Age + viability * dt, item.Type.MaxAge);
         }
-        if (Items.Count < 80 && UnityEngine.Random.value < dt) {
+        if (Items.Count < 1 && UnityEngine.Random.value < dt) {
             Items.Add(new Item{
                 Type = Definitions.tree,
                 Pos = Terrain.RandomPos()

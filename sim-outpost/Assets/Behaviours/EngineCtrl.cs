@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static Util;
 
@@ -39,6 +40,14 @@ public class EngineCtrl : MonoBehaviour {
         return Definitions.models[e.type.name].Color;
     }
 
+    void PruneDead(IEnumerable<Killable> killables) {
+        foreach (var zombie in killables.Where(e => e.IsDead)) {
+            if (zombie.GameObject != null) {
+                Destroy(zombie.GameObject);
+            }
+        }
+    }
+
     void Update() {
         Manager.Instance.Update(Time.deltaTime);
         Cursor.transform.position = Manager.Instance.HoverPoint;
@@ -51,6 +60,8 @@ public class EngineCtrl : MonoBehaviour {
             obj.transform.localScale = new Vector3(1, (0.2f + 0.8f*e.BuildProgress), 1);
             e.GameObject.GetComponent<Renderer>().material.color = BuildingColor(e);
         }
+        PruneDead(Manager.Instance.Buildings);
+        Manager.Instance.Buildings.RemoveAll(e => e.IsDead);
 
         foreach (var item in Manager.Instance.Items.Where(e => !e.IsDead)) {
             if (item.GameObject == null) AttachGameObject(item);
@@ -61,12 +72,7 @@ public class EngineCtrl : MonoBehaviour {
             var material = item.GameObject.GetComponent<Renderer>().material;
             material.color = rgb(0x0A0);
         }
-
-        foreach (var zombie in Manager.Instance.Items.Where(e => e.IsDead)) {
-            if (zombie.GameObject != null) {
-                Destroy(zombie.GameObject);
-            }
-        }
+        PruneDead(Manager.Instance.Items);
         Manager.Instance.Items.RemoveAll(e => e.IsDead);
 
         InputFilter.Update();

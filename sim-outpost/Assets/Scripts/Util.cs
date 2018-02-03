@@ -52,4 +52,12 @@ public static class Util {
             ((hex & 0x00f) >> 0) / 16.0f
         );
     }
+    public static Color rgba(int hex) {
+        return new Color(
+            ((hex & 0xf000) >> 12) / 16.0f,
+            ((hex & 0x0f00) >> 8) / 16.0f,
+            ((hex & 0x00f0) >> 4) / 16.0f,
+            ((hex & 0x000f) >> 0) / 16.0f
+        );
+    }
 }
