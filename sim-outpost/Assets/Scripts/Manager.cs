@@ -48,7 +48,7 @@ public class Manager {
             grid[cell.i+1, cell.j+0] = (h + grid[cell.i+1, cell.j+0]) / 2;
             grid[cell.i+0, cell.j+1] = (h + grid[cell.i+0, cell.j+1]) / 2;
             grid[cell.i+1, cell.j+1] = (h + grid[cell.i+1, cell.j+1]) / 2;
-            TerrainController?.UpdateMesh();
+            TerrainController?.OnTerrainChange();
         }
     }
 
@@ -60,26 +60,14 @@ public class Manager {
             Terrain.Height.field[cell.i + 1, cell.j + 0] += delta;
             Terrain.Height.field[cell.i + 0, cell.j + 1] += delta;
             Terrain.Height.field[cell.i + 1, cell.j + 1] += delta;
-            TerrainController?.UpdateMesh();
+            TerrainController?.OnTerrainChange();
         }
     }
 
     public void Update(float dt) {
         Terrain.Update(dt);
         foreach (var building in Buildings) {
-            if (building.BuildProgress >= 1) {
-                foreach (var aspect in building.type.Aspects) {
-                    aspect.Update(dt, building, this);
-                }
-            }
-            else {
-                var deltaCost = (-dt / building.type.buildTime) * building.type.cost;
-                building.IsSupplied = (Attr.Zero <= deltaCost + Store);
-                if (building.IsSupplied && building.IsEnabled) {
-                    Store += deltaCost;
-                    building.BuildProgress += dt / building.type.buildTime;
-                }
-            }
+            building.Update(dt, this);
         }
         foreach (var item in Items) {
             var viability = Terrain.Viability[(int)item.Pos.x, (int)item.Pos.z];

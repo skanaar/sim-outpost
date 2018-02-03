@@ -15,7 +15,7 @@ public class TerrainCtrl : MonoBehaviour {
         gameObject.layer = TerrainLayer;
     }
 
-    public void UpdateMesh() {
+    public void OnTerrainChange() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
         Destroy(GetComponent<MeshCollider>());
         gameObject.AddComponent<MeshCollider>();

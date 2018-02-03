@@ -17,6 +17,17 @@ public class Building {
         return cell.i >= Cell.i && cell.i < Cell.i + type.w &&
                cell.j >= Cell.j && cell.j < Cell.j + type.h;
     }
+
+    public void Update(float dt, Manager game) {
+        if (BuildProgress >= 1) {
+            foreach (var aspect in type.Aspects) {
+                aspect.Update(dt, this, game);
+            }
+        }
+        else {
+            ConstructionAspect.Instance.Update(dt, this, game);
+        }
+    }
 }
 
 public class BuildingType {
@@ -36,6 +47,19 @@ public class BuildingType {
 public interface BuildingAspect {
     void Update(float dt, Building self, Manager game);
 }
+
+public class ConstructionAspect : BuildingAspect {
+    public static ConstructionAspect Instance = new ConstructionAspect();
+    public void Update(float dt, Building self, Manager game) {
+        var deltaCost = (-dt / self.type.buildTime) * self.type.cost;
+        self.IsSupplied = (Attr.Zero <= deltaCost + game.Store);
+        if (self.IsSupplied && self.IsEnabled) {
+            game.Store += deltaCost;
+            self.BuildProgress += dt / self.type.buildTime;
+        }
+    }
+}
+
 public class TurnoverAspect : BuildingAspect {
     public void Update(float dt, Building self, Manager game) {
         self.IsSupplied = (Attr.Zero <= self.type.turnover+game.Store);
