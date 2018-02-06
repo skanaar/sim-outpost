@@ -34,3 +34,10 @@ sysinfo.txt
 *.app
 *.apk
 *.unitypackage
+
+*.blend1
+*.fbx
+*.png
+*~
+
+sim-outpost/Assets/Resources
