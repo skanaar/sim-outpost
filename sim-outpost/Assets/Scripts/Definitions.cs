@@ -19,6 +19,7 @@ public class Definitions {
 
     public static Mesh Model(string name) {
         return models[name].Mesh;
+        //return Resources.Load<Mesh>("Models/sphere-tank");
     }
 
     public static Dictionary<string, Look> models = new Dictionary<string, Look> {

@@ -7,13 +7,9 @@ public class EngineCtrl : MonoBehaviour {
 
     Manager Game => Manager.Instance;
 
-    public GameObject Cursor;
     public GameObject Selection;
 
     void Start() {
-        Cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        Cursor.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
-
         Selection = GameObject.CreatePrimitive(PrimitiveType.Quad);
         Selection.AddComponent<SelectionCtrl>();
 
@@ -26,12 +22,16 @@ public class EngineCtrl : MonoBehaviour {
 
     void AttachGameObject(Building building) {
         building.GameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        Mesh mesh = Definitions.models[building.type.name].Mesh;
+        Mesh mesh = Definitions.Model(building.type.name);
         building.GameObject.GetComponent<MeshFilter>().mesh = mesh;
     }
 
     void AttachGameObject(Item e) {
-        e.GameObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        e.GameObject = obj;
+        obj.transform.position = e.Pos;
+        var ctrl = obj.AddComponent<TreeCtrl>();
+        ctrl.Tree = new FractalTree();
     }
 
     Color BuildingColor(Building e) {
@@ -50,7 +50,6 @@ public class EngineCtrl : MonoBehaviour {
 
     void Update() {
         Manager.Instance.Update(Time.deltaTime);
-        Cursor.transform.position = Manager.Instance.HoverPoint;
 
         foreach (var e in Manager.Instance.Buildings) {
             if (e.GameObject == null) AttachGameObject(e);
@@ -67,8 +66,7 @@ public class EngineCtrl : MonoBehaviour {
             if (item.GameObject == null) AttachGameObject(item);
             var size = item.Age / item.Type.MaxAge;
             var obj = item.GameObject;
-            obj.transform.position = item.Pos + Vector3.up * size;
-            obj.transform.localScale = size * new Vector3(0.5f, 2, 0.5f);
+            obj.transform.localScale = size * new Vector3(1, 1, 1);
             var material = item.GameObject.GetComponent<Renderer>().material;
             material.color = rgb(0x0A0);
         }

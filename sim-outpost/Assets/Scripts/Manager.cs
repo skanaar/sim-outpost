@@ -57,7 +57,7 @@ public class Manager {
             }
             item.Age = Math.Min(item.Age + viability * dt, item.Type.MaxAge);
         }
-        if (Items.Count < 1 && UnityEngine.Random.value < dt) {
+        if (Items.Count < 10 && UnityEngine.Random.value < dt) {
             Items.Add(new Item{
                 Type = Definitions.tree,
                 Pos = Terrain.RandomPos()

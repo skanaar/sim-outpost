@@ -18,9 +18,9 @@ public class TerrainGrid {
         Water = new Field(res);
         Viability = new float[Res, Res];
         for (int x = 0; x < Res; x++) {
-            var slope = 6 * x / (float)Res;
             for (int y = 0; y < Res; y++) {
-                Height.field[x, y] = MaxHeight * lerp(curve, noise[x, y]) + slope;
+                float slope = 6 * sqrt(sq(x-Res/2) + sq(y-Res/2)) / Res;
+                Height.field[x, y] = MaxHeight * lerp(curve, noise[x, y]) - slope;
                 Viability[x, y] = 1 - Height[x, y] / MaxHeight;
                 Water.field[x, y] = 0.1f;
             }
@@ -87,7 +87,7 @@ public class TerrainGrid {
     }
 
     internal Vector3 RandomPos() {
-        var p = new Vector2(Random.value * Res, Random.value * Res);
+        var p = new Vector2(UnityEngine.Random.value * Res, UnityEngine.Random.value * Res);
         return new Vector3(p.x, Height[(int)p.x,(int)p.y], p.y);
     }
 }

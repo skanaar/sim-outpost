@@ -15,6 +15,7 @@ public static class Util {
     public static float cos(float x) => (float)Math.Cos(x);
     public static float sq(float x) => x * x;
     public static int sq(int x) => x * x;
+    public static float sqrt(float x) => (float)Math.Sqrt(x);
     public static float clamp(float low, float high, float x) => min(high, max(low, x));
     public static int clamp(int low, int high, int x) => min(high, max(low, x));
     public static float lerp(float a, float b, float k) => a * (k - 1) + b * k;
