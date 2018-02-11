@@ -80,6 +80,7 @@ public class Game {
         }
         GrowTrees(dt);
         UpdateBeauty(dt);
+        Beds = (int)Buildings.Sum(e => e.type.beds * compress(Beauty[e.Cell], halfAt: 5));
     }
 
     public void UpdateBeauty(float dt) {

@@ -19,6 +19,8 @@ public static class Util {
     public static float sqrt(float x) => (float)Math.Sqrt(x);
     public static float clamp(float low, float high, float x) => min(high, max(low, x));
     public static int clamp(int low, int high, int x) => min(high, max(low, x));
+    // maps range [0..inf) to [0..1) with near-linearity in range [0..halfAt*1.5]
+    public static float compress(float x, float halfAt) => 1 - 1 / (sq(x/halfAt) + 1);
     public static float lerp(float a, float b, float k) => a * (1 - k) + b * k;
     public static Color lerp(Color a, Color b, float k) => new Color(
         lerp(a.r, b.r, k),
