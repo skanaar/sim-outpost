@@ -37,6 +37,8 @@ public class BuildingType {
     public int h = 1;
     public Attr turnover;
     public Attr cost;
+    public int beds;
+    public float beauty;
     public float buildTime;
     public List<BuildingAspect> Aspects = new List<BuildingAspect>();
     public BuildPredicate Predicate = new BuildPredicate.FlatGround();

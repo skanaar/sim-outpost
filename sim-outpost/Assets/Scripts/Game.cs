@@ -11,6 +11,10 @@ public class Game {
 
     // constants
     public float BuildRange = 5;
+    public float ShoreBeauty = 2f;
+    public float BeautyDecay = 0.95f;
+    public float BeautyBackground = -0.3f;
+    public float WaterLowThreshold = 0.05f;
 
     // game state
     public float Time => UnityEngine.Time.time;
@@ -19,9 +23,13 @@ public class Game {
     public List<Item> Items { get; } = new List<Item>();
     public List<Mobile> Mobiles { get; } = new List<Mobile>();
     public Field NeighbourDist;
+    public Field Beauty;
     public Attr Store { get; set; } = Definitions.StartingCommodities;
+    public int Beds { get; set; } = 0;
+    public int Population { get; set; } = 0;
 
     // ui state
+    public float Zoom = 1.0f;
     public Vector3 HoverPoint { get; set; } = new Vector3(0, 0, 0);
     public Cell SelectedCell { get; set; } = new Cell(0, 0);
     public Building SelectedBuilding { get; set; } = null;
@@ -29,6 +37,7 @@ public class Game {
     public Game() {
         Terrain = new TerrainGrid(30);
         NeighbourDist = new Field(Terrain.Res);
+        Beauty = new Field(Terrain.Res);
         Mobiles.Add(new Mobile {
             Pos = Vector3.zero,
             Aspects = Seq<MobileAspect>(new TreeCollectorAspect{ Home = Terrain.RandomPos() })
@@ -70,6 +79,28 @@ public class Game {
             item.Age = Math.Min(item.Age + viability * dt, item.Type.MaxAge);
         }
         GrowTrees(dt);
+        UpdateBeauty(dt);
+    }
+
+    public void UpdateBeauty(float dt) {
+        for (int x = 1; x < Terrain.Res; x++) {
+            for (int y = 1; y < Terrain.Res; y++) {
+                var w0 = Terrain.Water[x, y] > WaterLowThreshold;
+                var wx = Terrain.Water[x-1, y] > WaterLowThreshold;
+                var wy = Terrain.Water[x, y-1] > WaterLowThreshold;
+                if (w0 != wx || w0 != wy) { // cell is shoreline
+                    Beauty[x, y] += dt*ShoreBeauty;
+                }
+                Beauty[x, y] = max(0, Beauty[x, y]*lerp(1,BeautyDecay,dt) + dt*BeautyBackground);
+            }
+        }
+        foreach (var building in Buildings) {
+            Beauty[building.Cell] += dt * building.type.beauty;
+        }
+        foreach (var e in Items) {
+            Beauty[Beauty.CellWithin(new Cell(e.Pos))] += dt * e.Type.Beauty;
+        }
+        Beauty.Smooth(dt);
     }
 
     public void GrowTrees(float dt) {

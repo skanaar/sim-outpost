@@ -19,7 +19,7 @@ public static class Util {
     public static float sqrt(float x) => (float)Math.Sqrt(x);
     public static float clamp(float low, float high, float x) => min(high, max(low, x));
     public static int clamp(int low, int high, int x) => min(high, max(low, x));
-    public static float lerp(float a, float b, float k) => a * (k - 1) + b * k;
+    public static float lerp(float a, float b, float k) => a * (1 - k) + b * k;
     public static Color lerp(Color a, Color b, float k) => new Color(
         lerp(a.r, b.r, k),
         lerp(a.g, b.g, k),

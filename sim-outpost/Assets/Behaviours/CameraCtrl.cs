@@ -3,25 +3,35 @@
 public class CameraCtrl : MonoBehaviour {
     Game Game => Game.Instance;
 
+    Camera self;
+
 	void Start() {
         var terrain = Game.Instance.Terrain;
         transform.position = terrain.GetCellFloor(terrain.Res / 2, terrain.Res / 2);
         transform.Rotate(new Vector3(25, 20, 0));
-        Camera cam = GetComponent<Camera>();
-        cam.farClipPlane = 200;
-        cam.nearClipPlane = -200;
+        self = GetComponent<Camera>();
+        self.farClipPlane = 200;
+        self.nearClipPlane = -200;
 	}
 
     void Update() {
         RaycastHit hit;
-        Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
+        Ray ray = self.ScreenPointToRay(Input.mousePosition);
         int layerMask = (1 << TerrainCtrl.TerrainLayer);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask)) {
             Game.Instance.HoverPoint = hit.point;
         }
+        self.orthographicSize = 5 * Game.Zoom;
     }
 
     void OnGUI() {
+        if (GUI.Button(new Rect(Screen.width/2 - 110, 10, 100, 20), "Zoom in")) {
+            Game.Zoom *= 0.9f;
+        }
+        if (GUI.Button(new Rect(Screen.width/2 + 10, 10, 100, 20), "Zoom out")) {
+            Game.Zoom /= 0.9f;
+        }
+
         if (Game.SelectedBuilding == null) {
             var terraform = new Terraform { Game = Game };
             if (GUI.Button(new Rect(10, 10, 100, 20), "Level")) {

@@ -31,8 +31,14 @@ public class Field {
             }
         }
     }
-    public float this[int i, int j] => field[i, j];
-    public float this[Cell cell] => field[cell.i, cell.j];
+    public float this[int i, int j] {
+        get { return field[i, j]; }
+        set { field[i, j] = value; }
+    }
+    public float this[Cell cell] {
+        get { return field[cell.i, cell.j]; }
+        set { field[cell.i, cell.j] = value; }
+    }
     public float this[Vector3 p] {
         get {
             var cell = new Cell(p);
@@ -45,6 +51,36 @@ public class Field {
     }
     public Cell CellWithin(Cell cell) {
         return new Cell(clamp(1, Res-2, cell.i), clamp(1, Res-2, cell.j));
+    }
+    public void Smooth(float dt) {
+        var step = max(1, dt);
+        var diff = new float[Res, Res];
+        for (int x = 0; x < Res; x++) {
+            var x_ = max(0, x-1);
+            var x1 = min(Res-1, x+1);
+            for (int y = 0; y < Res; y++) {
+                var y_ = max(0, y-1);
+                var y1 = min(Res-1, y+1);
+                var h = field[x, y];
+                var d00 = field[x_, y];
+                var d10 = field[x1, y];
+                var d01 = field[x, y_];
+                var d11 = field[x, y1];
+                diff[x, y] = (d00 + d10 + d01 + d11) / 4 - h;
+            }
+        }
+        for (int x = 0; x < Res; x++) {
+            for (int y = 0; y < Res; y++) {
+                field[x, y] += step * diff[x, y];
+            }
+        }
+    }
+    public void Multiply(float k) {
+        for (int x = 0; x < Res; x++) {
+            for (int y = 0; y < Res; y++) {
+                field[x, y] *= k;
+            }
+        }
     }
 }
 

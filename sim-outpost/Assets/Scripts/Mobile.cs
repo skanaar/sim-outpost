@@ -18,6 +18,14 @@ public interface MobileAspect {
     void Update(float dt, Mobile self, Game game);
 }
 
+public class BeautifulCreature : MobileAspect {
+    public float Beauty { get; set; }
+    public void Update(float dt, Mobile self, Game game) {
+        var cell = game.Beauty.CellWithin(new Cell(self.Pos));
+        game.Beauty[cell] += dt * Beauty;
+    }
+}
+
 public abstract class MoveToTargetAspect : MobileAspect {
     public float Speed = 0.5f;
     public abstract Vector3? TargetPos { get; }
@@ -30,7 +38,8 @@ public abstract class MoveToTargetAspect : MobileAspect {
         else {
             var dir = (TargetPos.Value - self.Pos);
             var p = self.Pos + dt * Speed * dir.normalized;
-            self.Pos = new Vector3(p.x, game.Terrain.Height[p], p.z);
+            var h = game.Terrain.Height[p] + game.Terrain.Water[p];
+            self.Pos = new Vector3(p.x, h, p.z);
             if (dir.magnitude < 0.5f) {
                 ReachTarget(game);
             }

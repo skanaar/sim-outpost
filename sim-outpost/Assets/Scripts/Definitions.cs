@@ -41,6 +41,7 @@ public class Definitions {
         Name = "Tree",
         Kind = ItemKind.Plant,
         Contents = new Attr { biomass = 10, biosludge = 10 },
+        Beauty = 2,
         MaxAge = 10
     };
     
@@ -48,6 +49,7 @@ public class Definitions {
         new BuildingType("Relay", new TurnoverAspect()) {
             turnover = new Attr(),
             cost = new Attr { metal = 5 },
+            beauty = 1,
             buildTime = 2
         },
         new BuildingType("Reactor", new TurnoverAspect()) {
@@ -69,6 +71,7 @@ public class Definitions {
         new BuildingType("Extractor", new TurnoverAspect()) {
             turnover = new Attr { energy = -2, metal = 1 },
             cost = new Attr { energy = 20 },
+            beauty = -3,
             buildTime = 3
         },
         new BuildingType("Harvester", new TreeHarvesterAspect()) {
@@ -79,6 +82,7 @@ public class Definitions {
         new BuildingType("Greenhouse", new TurnoverAspect()) {
             turnover = new Attr { food = 2, oxygen = 1 },
             cost = new Attr { biosludge = 3, metal = 2 },
+            beauty = 1,
             buildTime = 2
         },
         new BuildingType("Hydroponics", new TurnoverAspect()) {
@@ -90,21 +94,25 @@ public class Definitions {
         new BuildingType("Habitat", new TurnoverAspect()) {
             turnover = new Attr { food = -2, oxygen = -1 },
             cost = new Attr { food = 3, metal = 10 },
+            beds = 10,
             buildTime = 8
         },
         new BuildingType("Atmoplant", new TurnoverAspect()) {
             turnover = new Attr { energy = -10, oxygen = 2 },
             cost = new Attr { energy = 200, metal = 10 },
+            beauty = -2,
             buildTime = 8
         },
         new BuildingType("Syntactor", new TurnoverAspect()) {
             turnover = new Attr { biosludge = -10, chems = 1, fuel = 2 },
             cost = new Attr { biosludge = 3, metal = 10 },
+            beauty = -5,
             buildTime = 4
         },
         new BuildingType("Hydro Power", new HydroPowerAspect()) {
             turnover = new Attr(),
             cost = new Attr { metal = 10 },
+            beauty = -4,
             buildTime = 2
         }
     };

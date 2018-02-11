@@ -18,6 +18,7 @@ public class ItemType {
     public ItemKind Kind;
     public Vector2 Pos;
     public string Name;
+    public float Beauty;
     public Attr Contents;
     public float MaxAge;
 }

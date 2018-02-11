@@ -15,12 +15,13 @@ public class WaterCtrl : MonoBehaviour {
     }
 
     Mesh BuildMesh(int res) {
+        var minima = Game.Instance.WaterLowThreshold;
         var vertices = new Vector3[res * res];
         for (int i = 0; i < res; i++) {
             for (int j = 0; j < res; j++) {
                 var h = Terrain.Height[i, j];
                 var w = Terrain.Water[i, j];
-                vertices[i + res * j] = new Vector3(i, h + (w<0.05f?-0.1f:w), j);
+                vertices[i + res * j] = new Vector3(i, h + (w<minima ? -0.1f : w), j);
             }
         }
         var triangles = new int[2 * 3 * sq(res - 1)];
