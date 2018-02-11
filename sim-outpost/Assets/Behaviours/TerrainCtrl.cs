@@ -9,8 +9,7 @@ public class TerrainCtrl : MonoBehaviour {
 
     void Start() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
-        GetComponent<Renderer>().material = new Material(Shader.Find("Low Poly"));
-        GetComponent<Renderer>().material.color = rgb(0x6A6);
+        GetComponent<Renderer>().material = Materials.Ground;
         gameObject.AddComponent<MeshCollider>();
         gameObject.layer = TerrainLayer;
     }

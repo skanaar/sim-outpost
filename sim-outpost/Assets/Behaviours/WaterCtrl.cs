@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using static UnityEngine.Rendering.ShadowCastingMode;
 using static Util;
 
 public class WaterCtrl : MonoBehaviour {
@@ -7,8 +8,10 @@ public class WaterCtrl : MonoBehaviour {
 
     void Start() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
-        GetComponent<Renderer>().material = new Material(Shader.Find("Low Poly"));
-        GetComponent<Renderer>().material.color = rgb(0x66F);
+        var r = gameObject.GetComponent<Renderer>();
+        r.material = Materials.Water;
+        r.receiveShadows = false;
+        r.shadowCastingMode = Off;
     }
 
     Mesh BuildMesh(int res) {

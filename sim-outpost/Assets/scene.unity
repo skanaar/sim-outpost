@@ -358,6 +358,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Selection: {fileID: 0}
+  Terrain: {fileID: 0}
 --- !u!1 &1429619125
 GameObject:
   m_ObjectHideFlags: 0
