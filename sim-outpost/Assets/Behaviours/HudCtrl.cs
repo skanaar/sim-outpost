@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class HudCtrl : MonoBehaviour {
 
     Text text;
-    Manager Game => Manager.Instance;
+    Game Game => Game.Instance;
 
 	void Start () {
         text = gameObject.GetComponent<Text>(); 

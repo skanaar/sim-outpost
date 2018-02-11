@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public static class FloatExtensions {
@@ -6,7 +8,6 @@ public static class FloatExtensions {
 }
 
 public static class Util {
-    public static Manager Game => Manager.Instance;
     public static int min(int a, int b) => Math.Min(a, b);
     public static int max(int a, int b) => Math.Max(a, b);
     public static float min(float a, float b) => Math.Min(a, b);
@@ -61,4 +62,5 @@ public static class Util {
             ((hex & 0x000f) >> 0) / 16.0f
         );
     }
+    public static List<T> Seq<T>(params T[] items) => items.ToList();
 }

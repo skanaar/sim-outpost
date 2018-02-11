@@ -19,7 +19,7 @@ public class Building : Killable {
                cell.j >= Cell.j && cell.j < Cell.j + type.h;
     }
 
-    public void Update(float dt, Manager game) {
+    public void Update(float dt, Game game) {
         if (BuildProgress >= 1) {
             foreach (var aspect in type.Aspects) {
                 aspect.Update(dt, this, game);
@@ -47,12 +47,12 @@ public class BuildingType {
 }
 
 public interface BuildingAspect {
-    void Update(float dt, Building self, Manager game);
+    void Update(float dt, Building self, Game game);
 }
 
 public class ConstructionAspect : BuildingAspect {
     public static ConstructionAspect Instance = new ConstructionAspect();
-    public void Update(float dt, Building self, Manager game) {
+    public void Update(float dt, Building self, Game game) {
         var deltaCost = (-dt / self.type.buildTime) * self.type.cost;
         self.IsSupplied = (Attr.Zero <= deltaCost + game.Store);
         if (self.IsSupplied && self.IsEnabled) {
@@ -63,7 +63,7 @@ public class ConstructionAspect : BuildingAspect {
 }
 
 public class TurnoverAspect : BuildingAspect {
-    public void Update(float dt, Building self, Manager game) {
+    public void Update(float dt, Building self, Game game) {
         self.IsSupplied = (Attr.Zero <= self.type.turnover+game.Store);
         if (self.IsProducing) {
             self.LastTurnover = self.type.turnover;
@@ -74,7 +74,7 @@ public class TurnoverAspect : BuildingAspect {
 
 public class TreeHarvesterAspect : BuildingAspect {
     float Range => 7;
-    public void Update(float dt, Building self, Manager game) {
+    public void Update(float dt, Building self, Game game) {
         if (self.IsProducing && Random.value * 2 < dt) {
             var pos = self.Cell.ToVector;
             var tree = game.Items
@@ -90,7 +90,7 @@ public class TreeHarvesterAspect : BuildingAspect {
 }
 
 public class WindTurbineAspect : BuildingAspect {
-    public void Update(float dt, Building self, Manager game) {
+    public void Update(float dt, Building self, Game game) {
         if (self.IsProducing) {
             var height = clamp(0, 1, 0.25f + game.Terrain.PeakProminence[self.Cell]);
             self.LastTurnover = height * self.type.turnover;
@@ -100,7 +100,7 @@ public class WindTurbineAspect : BuildingAspect {
 }
 
 public class SolarPowerAspect : BuildingAspect {
-    public void Update(float dt, Building self, Manager game) {
+    public void Update(float dt, Building self, Game game) {
         if (self.IsProducing) {
             var influx = 0.5f + 0.5f * sin(game.Time * 0.1f);
             self.LastTurnover = influx * self.type.turnover;
@@ -114,7 +114,7 @@ public class HydroPowerAspect : BuildingAspect {
     float MaxIntake = 0.5f;
     float EnergyPerWater = 10f;
     public string Name => "Hydro Power";
-    public void Update(float dt, Building self, Manager game) {
+    public void Update(float dt, Building self, Game game) {
         if (self.IsProducing) {
             var ground = game.Terrain.Height;
             var res = game.Terrain.Height.Res;
@@ -147,26 +147,26 @@ public class HydroPowerAspect : BuildingAspect {
 }
 
 public abstract class BuildPredicate {
-    public abstract bool CanBuild(Cell cell, Manager game);
-    public static bool IsEmpty(Cell cell, Manager game) {
+    public abstract bool CanBuild(Cell cell, Game game);
+    public static bool IsEmpty(Cell cell, Game game) {
         return game.Buildings.All(e => e.Cell != cell);
     }
 
     public class Upgrade : BuildPredicate {
         public string From;
-        public override bool CanBuild(Cell cell, Manager game) {
+        public override bool CanBuild(Cell cell, Game game) {
             return game.Buildings.Any(e => e.Cell == cell && e.type.name == From);
         }
     }
 
     public class FlatGround : BuildPredicate {
-        public override bool CanBuild(Cell cell, Manager game) {
+        public override bool CanBuild(Cell cell, Game game) {
             return IsEmpty(cell, game) && game.Terrain.Slope(cell) < 0.25f;
         }
     }
 
     public class Windy : BuildPredicate {
-        public override bool CanBuild(Cell cell, Manager game) {
+        public override bool CanBuild(Cell cell, Game game) {
             var isPeak = new PeakProminence(game.Terrain.Height)[cell] > 0;
             return IsEmpty(cell, game) && isPeak;
         }

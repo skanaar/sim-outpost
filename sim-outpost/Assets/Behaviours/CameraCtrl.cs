@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 
 public class CameraCtrl : MonoBehaviour {
-    Manager Game => Manager.Instance;
+    Game Game => Game.Instance;
 
 	void Start() {
-        var terrain = Manager.Instance.Terrain;
+        var terrain = Game.Instance.Terrain;
         transform.position = terrain.GetCellFloor(terrain.Res / 2, terrain.Res / 2);
         transform.Rotate(new Vector3(25, 20, 0));
         Camera cam = GetComponent<Camera>();
@@ -17,7 +17,7 @@ public class CameraCtrl : MonoBehaviour {
         Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
         int layerMask = (1 << TerrainCtrl.TerrainLayer);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask)) {
-            Manager.Instance.HoverPoint = hit.point;
+            Game.Instance.HoverPoint = hit.point;
         }
     }
 

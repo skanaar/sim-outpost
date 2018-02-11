@@ -3,7 +3,7 @@ using static Util;
 
 public class WaterCtrl : MonoBehaviour {
 
-    TerrainGrid Terrain => Manager.Instance.Terrain;
+    TerrainGrid Terrain => Game.Instance.Terrain;
 
     void Start() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);

@@ -5,33 +5,51 @@ using static Util;
 
 public class EngineCtrl : MonoBehaviour {
 
-    Manager Game => Manager.Instance;
+    Game Game => Game.Instance;
 
     public GameObject Selection;
+    public GameObject Terrain;
 
     void Start() {
         Selection = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        Selection.name = "selection";
         Selection.AddComponent<SelectionCtrl>();
 
-        var terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        Manager.Instance.TerrainController = terrain.AddComponent<TerrainCtrl>();
+        Terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        Terrain.name = "terrain";
+        Game.Instance.TerrainController = Terrain.AddComponent<TerrainCtrl>();
 
         var water = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        water.name = "water";
         water.AddComponent<WaterCtrl>();
     }
 
     void AttachGameObject(Building building) {
-        building.GameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        var obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        obj.name = building.type.name;
+        obj.transform.parent = Terrain.transform;
+        building.GameObject = obj;
         Mesh mesh = Definitions.Model(building.type.name);
         building.GameObject.GetComponent<MeshFilter>().mesh = mesh;
     }
 
     void AttachGameObject(Item e) {
         var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        obj.name = "tree";
+        obj.transform.parent = Terrain.transform;
         e.GameObject = obj;
         obj.transform.position = e.Pos;
         var ctrl = obj.AddComponent<TreeCtrl>();
         ctrl.Tree = new FractalTree();
+    }
+
+    void AttachGameObject(Mobile e) {
+        var obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        obj.name = "mobile";
+        obj.transform.parent = Terrain.transform;
+        e.GameObject = obj;
+        obj.transform.position = e.Pos;
+        obj.transform.localScale = 0.25f * new Vector3(1, 1, 1);
     }
 
     Color BuildingColor(Building e) {
@@ -49,9 +67,9 @@ public class EngineCtrl : MonoBehaviour {
     }
 
     void Update() {
-        Manager.Instance.Update(Time.deltaTime);
+        Game.Update(Time.deltaTime);
 
-        foreach (var e in Manager.Instance.Buildings) {
+        foreach (var e in Game.Buildings) {
             if (e.GameObject == null) AttachGameObject(e);
             var obj = e.GameObject;
             obj.transform.position = Game.Terrain.GetCellFloor(e.Cell);
@@ -59,10 +77,17 @@ public class EngineCtrl : MonoBehaviour {
             obj.transform.localScale = new Vector3(1, (0.2f + 0.8f*e.BuildProgress), 1);
             e.GameObject.GetComponent<Renderer>().material.color = BuildingColor(e);
         }
-        PruneDead(Manager.Instance.Buildings);
-        Manager.Instance.Buildings.RemoveAll(e => e.IsDead);
+        PruneDead(Game.Buildings);
+        Game.Buildings.RemoveAll(e => e.IsDead);
 
-        foreach (var item in Manager.Instance.Items.Where(e => !e.IsDead)) {
+        foreach (var e in Game.Mobiles) {
+            if (e.GameObject == null) AttachGameObject(e);
+            e.GameObject.transform.position = e.Pos;
+        }
+        PruneDead(Game.Mobiles);
+        Game.Mobiles.RemoveAll(e => e.IsDead);
+
+        foreach (var item in Game.Items.Where(e => !e.IsDead)) {
             if (item.GameObject == null) AttachGameObject(item);
             var size = item.Age / item.Type.MaxAge;
             var obj = item.GameObject;
@@ -70,8 +95,8 @@ public class EngineCtrl : MonoBehaviour {
             var material = item.GameObject.GetComponent<Renderer>().material;
             material.color = rgb(0x0A0);
         }
-        PruneDead(Manager.Instance.Items);
-        Manager.Instance.Items.RemoveAll(e => e.IsDead);
+        PruneDead(Game.Items);
+        Game.Items.RemoveAll(e => e.IsDead);
 
         InputFilter.Update();
         if (InputFilter.IsStartOfTap && Input.mousePosition.x > 110) {

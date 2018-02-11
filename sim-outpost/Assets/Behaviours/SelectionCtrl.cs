@@ -2,9 +2,10 @@
 using static Util;
 
 public class SelectionCtrl : MonoBehaviour {
+    Game Game => Game.Instance;
        
 	void Update () {
-        var cell = Manager.Instance.SelectedCell;
+        var cell = Game.Instance.SelectedCell;
         gameObject.transform.position = new Vector3(cell.i, 0, cell.j);
         var mesh = gameObject.GetComponent<MeshFilter>().mesh;
         mesh.vertices = new Vector3[]{

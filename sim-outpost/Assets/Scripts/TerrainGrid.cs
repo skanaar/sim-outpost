@@ -87,7 +87,7 @@ public class TerrainGrid {
     }
 
     internal Vector3 RandomPos() {
-        var p = new Vector2(UnityEngine.Random.value * Res, UnityEngine.Random.value * Res);
-        return new Vector3(p.x, Height[(int)p.x,(int)p.y], p.y);
+        var p = new Vector3(Random.Range(1, Res-1), 0, Random.Range(1, Res-1));
+        return new Vector3(p.x, Height[p], p.z);
     }
 }

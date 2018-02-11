@@ -1,6 +1,6 @@
 ﻿public class Terraform {
 
-    public Manager Game;
+    public Game Game;
 
     public void LevelTerrain(Cell cell) {
         if (Game.Store.energy > 10) {

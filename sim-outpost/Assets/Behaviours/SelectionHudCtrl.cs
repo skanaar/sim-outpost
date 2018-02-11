@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using static Util;
 
 public class SelectionHudCtrl : MonoBehaviour {
+    Game Game => Game.Instance;
 
     Text text;
 
@@ -16,11 +16,11 @@ public class SelectionHudCtrl : MonoBehaviour {
             text.text = BuildingDesc(e);
         }
         else if (Game.Terrain.Height.field.ContainsCell(Game.SelectedCell)) {
-            text.text = CellDesc(Manager.Instance.SelectedCell);
+            text.text = CellDesc(Game.Instance.SelectedCell);
         }
     }
 
-    static string CellDesc(Cell cell) {
+    string CellDesc(Cell cell) {
         return string.Join("\n", new string[]{
             "height " + (int)(10 * Game.Terrain.Height[cell]),
             "support " + (int)Game.NeighbourDist[cell],

@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using System.Linq;
+﻿using UnityEngine;
 using static Util;
 
 public class GridCtrl : MonoBehaviour {
     
-    TerrainGrid Terrain => Manager.Instance.Terrain;
+    TerrainGrid Terrain => Game.Instance.Terrain;
+    Game Game => Game.Instance;
 
     void Start() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
@@ -25,7 +24,7 @@ public class GridCtrl : MonoBehaviour {
         var r2 = res * res;
         for (int i = 0; i < res; i++) {
             for (int j = 0; j < res; j++) {
-                var isBuildable = Manager.Instance.NeighbourDist[i, j] < Game.BuildRange;
+                var isBuildable = Game.NeighbourDist[i, j] < Game.BuildRange;
                 var h = Terrain.Height[i, j] + (isBuildable ? 0f : -0.5f);
                 vertices[i + res * j] = new Vector3(i, h, j);
                 vertices[i + res * j + r2] = new Vector3(i, h+0.2f, j);

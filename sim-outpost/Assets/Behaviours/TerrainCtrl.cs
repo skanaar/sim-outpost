@@ -5,7 +5,7 @@ public class TerrainCtrl : MonoBehaviour {
 
     public static int TerrainLayer = 10;
 
-    TerrainGrid Terrain => Manager.Instance.Terrain;
+    TerrainGrid Terrain => Game.Instance.Terrain;
 
     void Start() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
