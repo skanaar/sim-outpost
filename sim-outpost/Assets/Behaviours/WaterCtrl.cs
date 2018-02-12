@@ -17,11 +17,15 @@ public class WaterCtrl : MonoBehaviour {
     Mesh BuildMesh(int res) {
         var minima = Game.Instance.WaterLowThreshold;
         var vertices = new Vector3[res * res];
+        var uv = new Vector2[res * res];
+        var colors = new Color[res * res];
         for (int i = 0; i < res; i++) {
             for (int j = 0; j < res; j++) {
-                var h = Terrain.Height[i, j];
                 var w = Terrain.Water[i, j];
-                vertices[i + res * j] = new Vector3(i, h + (w<minima ? -0.1f : w), j);
+                var h = Terrain.Height[i, j];
+                vertices[i + res * j] = new Vector3(i, w+h-minima, j);
+                uv[i + res * j] = new Vector2(i/(float)res, j/(float)res);
+                colors[i + res * j] = new Color(1,1,1,Mathf.Min(1, 1.25f*w));
             }
         }
         var triangles = new int[2 * 3 * sq(res - 1)];
@@ -48,6 +52,8 @@ public class WaterCtrl : MonoBehaviour {
         }
         var mesh = new Mesh();
         mesh.vertices = vertices;
+        mesh.uv = uv;
+        mesh.colors = colors;
         mesh.triangles = triangles;
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();

@@ -84,6 +84,26 @@ public class Field {
     }
 }
 
+public class Slope {
+    public readonly Field field;
+    public Slope(Field f) { this.field = f; }
+    public float this[Cell cell] => this[cell.i, cell.j];
+    public float this[int i, int j] {
+        get {
+            if (i < 0 || i > field.Res - 2 || j < 0 || j > field.Res - 2) {
+                return 0;
+            }
+            float h1 = field[(i + 0), (j + 0)];
+            float h2 = field[(i + 1), (j + 0)];
+            float h3 = field[(i + 0), (j + 1)];
+            float h4 = field[(i + 1), (j + 1)];
+            float low = min(min(h1, h2), min(h3, h4));
+            float high = max(max(h1, h2), max(h3, h4));
+            return high - low;
+        }
+    }
+}
+
 public class FieldSum {
     public readonly Field A, B;
     public FieldSum(Field a, Field b) {

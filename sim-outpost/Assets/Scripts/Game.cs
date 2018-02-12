@@ -10,7 +10,9 @@ public class Game {
     internal TerrainCtrl TerrainController;
 
     // constants
+    public int Res = 50;
     public float BuildRange = 5;
+    public float MaxBuildingSlope = 0.25f;
     public float ShoreBeauty = 2f;
     public float BeautyDecay = 0.95f;
     public float BeautyBackground = -0.3f;
@@ -35,9 +37,9 @@ public class Game {
     public Building SelectedBuilding { get; set; } = null;
 
     public Game() {
-        Terrain = new TerrainGrid(30);
-        NeighbourDist = new Field(Terrain.Res);
-        Beauty = new Field(Terrain.Res);
+        Terrain = new TerrainGrid(Res);
+        NeighbourDist = new Field(Res);
+        Beauty = new Field(Res);
         Mobiles.Add(new Mobile {
             Pos = Vector3.zero,
             Aspects = Seq<MobileAspect>(new TreeCollectorAspect{ Home = Terrain.RandomPos() })
@@ -65,6 +67,7 @@ public class Game {
 
     public void Update(float dt) {
         Terrain.Update(dt);
+        TerrainController.OnWaterChange();
         foreach (var building in Buildings) {
             building.Update(dt, this);
         }

@@ -2,24 +2,26 @@
 using static Util;
 
 public class TerrainGrid {
-    Noise noise = new Noise{ scale = 10f, octaves = 4 };
-    float[] curve = { 0.2f, 0.15f, 0.2f, 0.6f, 1 };
+    Noise noise = new Noise{ scale = 12f, octaves = 4 };
+    float[] curve = { 0f, 0.25f, 0.3f, 0.8f, 1 };
     public int Res { get; }
-    public float MaxHeight { get; } = 10;
-    public Color[] Spectrum { get; } = { rgb(0x88F), rgb(0x8F8), rgb(0x444), rgb(0xAAA) };
+    public float MaxHeight = 10;
+    public Color[] Spectrum = { rgb(0x888), rgb(0x6F2), rgb(0x444), rgb(0xAAA), rgb(0xAAA) };
     public Field Height;
     public Field Water;
+    public Slope Slope;
     public PeakProminence PeakProminence => new PeakProminence(Height);
     public float[,] Viability;
 
     public TerrainGrid(int res) {
         Res = res;
         Height = new Field(res);
+        Slope = new Slope(Height);
         Water = new Field(res);
         Viability = new float[Res, Res];
         for (int x = 0; x < Res; x++) {
             for (int y = 0; y < Res; y++) {
-                float slope = 6 * sqrt(sq(x-Res/2) + sq(y-Res/2)) / Res;
+                float slope = 20 * (1 - Mathf.Cos(sqrt(sq(x-Res/2) + sq(y-Res/2))/Res));
                 Height.field[x, y] = MaxHeight * lerp(curve, noise[x, y]) - slope;
                 Viability[x, y] = 1 - Height[x, y] / MaxHeight;
                 Water.field[x, y] = 0.1f;
@@ -69,21 +71,6 @@ public class TerrainGrid {
         float h4 = Height[(i + 1), (j + 1)];
         float h = min(min(h1, h2), min(h3, h4));
         return new Vector3(i + 0.5f, h, j + 0.5f);
-    }
-
-    internal float Slope(Cell cell) {
-        var i = cell.i;
-        var j = cell.j;
-        if (i < 0 || i > Res - 2 || j < 0 || j > Res - 2) {
-            return 0;
-        }
-        float h1 = Height[(i + 0), (j + 0)];
-        float h2 = Height[(i + 1), (j + 0)];
-        float h3 = Height[(i + 0), (j + 1)];
-        float h4 = Height[(i + 1), (j + 1)];
-        float low = min(min(h1, h2), min(h3, h4));
-        float high = max(max(h1, h2), max(h3, h4));
-        return high - low;
     }
 
     internal Vector3 RandomPos() {

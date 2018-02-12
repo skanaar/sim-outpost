@@ -163,7 +163,7 @@ public abstract class BuildPredicate {
 
     public class FlatGround : BuildPredicate {
         public override bool CanBuild(Cell cell, Game game) {
-            return IsEmpty(cell, game) && game.Terrain.Slope(cell) < 0.25f;
+            return IsEmpty(cell, game) && game.Terrain.Slope[cell] < Game.Instance.MaxBuildingSlope;
         }
     }
 

@@ -20,14 +20,39 @@ public class TerrainCtrl : MonoBehaviour {
         gameObject.AddComponent<MeshCollider>();
     }
 
+    public void OnWaterChange() {
+        UpdateMeshColor(Terrain.Res);
+    }
+
+    Color groundColor(int i, int j) {
+        var waterMin = Game.Instance.WaterLowThreshold;
+        if (Terrain.Water[i, j] > waterMin) return rgb(0xBB8);
+        if (Terrain.PeakProminence[new Cell(i, j)] > 0.5) return rgb(0xAAA);
+        if (Terrain.Slope[i, j] <= Game.Instance.MaxBuildingSlope) return rgb(0x4F2);
+        return rgb(0x660);
+    }
+
+    void UpdateMeshColor(int res) {
+        var colors = new Color[res * res];
+        for (int i = 0; i < res; i++) {
+            for (int j = 0; j < res; j++) {
+                colors[i + res * j] = groundColor(i, j);
+            }
+        }
+        GetComponent<MeshFilter>().mesh.colors = colors;
+    }
+
     Mesh BuildMesh(int res) {
         var vertices = new Vector3[res * res];
+        var uv = new Vector2[res * res];
         var colors = new Color[res * res];
         for (int i = 0; i < res; i++) {
             for (int j = 0; j < res; j++) {
                 var h = Terrain.Height[i, j];
                 vertices[i + res * j] = new Vector3(i, h, j);
-                colors[i + res * j] = lerp(Terrain.Spectrum, h / Terrain.MaxHeight);
+                uv[i + res * j] = new Vector2(i/(float)res, j/(float)res);
+                //colors[i + res * j] = lerp(Terrain.Spectrum, h / Terrain.MaxHeight);
+                colors[i + res * j] = groundColor(i, j);
             }
         }
         var triangles = new int[2 * 3 * sq(res - 1)];
@@ -55,6 +80,7 @@ public class TerrainCtrl : MonoBehaviour {
         }
         var mesh = new Mesh();
         mesh.vertices = vertices;
+        mesh.uv = uv;
         mesh.triangles = triangles;
         mesh.colors = colors;
         mesh.RecalculateBounds();

@@ -22,14 +22,15 @@ public class CameraCtrl : MonoBehaviour {
             Game.Instance.HoverPoint = hit.point;
         }
         self.orthographicSize = 5 * Game.Zoom;
+        transform.rotation = Quaternion.Euler(25/Game.Zoom, 20*Game.Zoom, 0);
     }
 
     void OnGUI() {
         if (GUI.Button(new Rect(Screen.width/2 - 110, 10, 100, 20), "Zoom in")) {
-            Game.Zoom *= 0.9f;
+            Game.Zoom *= 0.8f;
         }
         if (GUI.Button(new Rect(Screen.width/2 + 10, 10, 100, 20), "Zoom out")) {
-            Game.Zoom /= 0.9f;
+            Game.Zoom /= 0.8f;
         }
 
         if (Game.SelectedBuilding == null) {

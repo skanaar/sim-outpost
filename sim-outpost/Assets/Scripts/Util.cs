@@ -53,7 +53,8 @@ public static class Util {
         return new Color(
             ((hex & 0xf00) >> 8) / 16.0f,
             ((hex & 0x0f0) >> 4) / 16.0f,
-            ((hex & 0x00f) >> 0) / 16.0f
+            ((hex & 0x00f) >> 0) / 16.0f,
+            1
         );
     }
     public static Color rgba(int hex) {
