@@ -102,22 +102,29 @@ public class EngineCtrl : MonoBehaviour {
         if (InputFilter.IsStartOfTap && Input.mousePosition.x > 110) {
             Game.SelectCell();
         }
+        if (InputFilter.Hold) {
+            Game.Pan += 0.001f * new Vector3(InputFilter.Swipe.x, 0, InputFilter.Swipe.y);
+        }
     }
 }
 
 class InputFilter {
-    static bool tapp = false;
-    static bool hold = false;
+    static Vector3 start = Vector3.zero;
+    public static bool Hold => Input.GetButton("Fire1");
+    public static bool aborted = false;
 
-    public static bool IsStartOfTap => tapp && !hold;
+    public static bool IsStartOfTap => !aborted && Input.GetButtonDown("Fire1");
 
     public static void Update() {
-        hold = tapp;
-        tapp = Input.GetButtonDown("Fire1");
+        aborted = false;
+        if (IsStartOfTap) {
+            start = Input.mousePosition;
+        }
     }
 
     public static void AbortTap() {
-        tapp = false;
-        hold = false;
+        aborted = true;
     }
+
+    public static Vector3 Swipe => Input.mousePosition - start;
 }

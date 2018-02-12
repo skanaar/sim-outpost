@@ -40,4 +40,7 @@ sysinfo.txt
 *.png
 *~
 
-sim-outpost/Assets/Resources
+sim-outpost/Assets/Resources/Models
+sim-outpost/Assets/Resources/Prefabs
+sim-outpost/Assets/Resources/Models.meta
+sim-outpost/Assets/Resources/Prefabs.meta

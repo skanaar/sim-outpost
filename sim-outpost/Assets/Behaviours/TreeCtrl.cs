@@ -8,18 +8,22 @@ public class TreeCtrl : MonoBehaviour {
     void Update() {
         if (!isInitialized && Tree != null) {
             GetComponent<MeshFilter>().mesh = BuildMesh(Tree);
+            GetComponent<Renderer>().material = Resources.Load<Material>("tree-material");
             isInitialized = true;
         }
     }
 
     void AddToMesh(FractalTree.Segment segment, List<Vector3> vertices, List<int> triangles) {
         int i = vertices.Count;
-        vertices.Add(segment.start + new Vector3(0.1f, 0, 0));
-        vertices.Add(segment.start + new Vector3(-0.05f, 0, -0.07f));
-        vertices.Add(segment.start + new Vector3(-0.05f, 0, 0.07f));
+        float a = 0.05f;
+        float b = a*0.7f;
+        float c = a*0.5f;
+        vertices.Add(segment.start + new Vector3(a, 0, 0));
+        vertices.Add(segment.start + new Vector3(-c, 0, -b));
+        vertices.Add(segment.start + new Vector3(-c, 0, b));
         vertices.Add(segment.start + segment.dir + new Vector3(0.1f, 0, 0));
-        vertices.Add(segment.start + segment.dir + new Vector3(-0.05f, 0, -0.07f));
-        vertices.Add(segment.start + segment.dir + new Vector3(-0.05f, 0, 0.07f));
+        vertices.Add(segment.start + segment.dir + new Vector3(-c, 0, -b));
+        vertices.Add(segment.start + segment.dir + new Vector3(-c, 0, b));
         triangles.AddRange(new int[] { i+1, i+0, i+3 });
         triangles.AddRange(new int[] { i+2, i+1, i+4 });
         triangles.AddRange(new int[] { i+0, i+2, i+5 });

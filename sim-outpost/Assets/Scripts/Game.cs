@@ -32,6 +32,7 @@ public class Game {
 
     // ui state
     public float Zoom = 1.0f;
+    public Vector3 Pan = Vector3.zero;
     public Vector3 HoverPoint { get; set; } = new Vector3(0, 0, 0);
     public Cell SelectedCell { get; set; } = new Cell(0, 0);
     public Building SelectedBuilding { get; set; } = null;

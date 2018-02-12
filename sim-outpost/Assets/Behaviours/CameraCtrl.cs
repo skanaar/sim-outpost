@@ -23,6 +23,7 @@ public class CameraCtrl : MonoBehaviour {
         }
         self.orthographicSize = 5 * Game.Zoom;
         transform.rotation = Quaternion.Euler(25/Game.Zoom, 20*Game.Zoom, 0);
+        transform.position = Game.Pan;
     }
 
     void OnGUI() {
