@@ -14,18 +14,23 @@ public class Game {
     public float BuildRange = 5;
     public float MaxBuildingSlope = 0.25f;
     public float ShoreBeauty = 2f;
-    public float BeautyDecay = 0.95f;
-    public float BeautyBackground = -0.3f;
+    public float BeautyDecay = 0.4f;
     public float WaterLowThreshold = 0.05f;
+    public float PollutionDecay = 0.002f;
+    public float PollutionDispersal = 0.001f;
+    public float PollutionPersistTreshold = 0.01f;
+    public float PollutionOverlayScale = 5f;
+    public float BeautyOverlayScale = 0.2f;
+    public float BeautyMax = 1f;
 
     // game state
     public float Time => UnityEngine.Time.time;
     public TerrainGrid Terrain;
     public List<Building> Buildings { get; } = new List<Building>();
-    public List<Item> Items { get; } = new List<Item>();
-    public List<Mobile> Mobiles { get; } = new List<Mobile>();
+    public List<Entity> Entities { get; } = new List<Entity>();
     public Field NeighbourDist;
     public Field Beauty;
+    public Field Pollution;
     public Attr Store { get; set; } = Definitions.StartingCommodities;
     public int Beds { get; set; } = 0;
     public int Population { get; set; } = 0;
@@ -36,14 +41,15 @@ public class Game {
     public Vector3 HoverPoint { get; set; } = new Vector3(0, 0, 0);
     public Cell SelectedCell { get; set; } = new Cell(0, 0);
     public Building SelectedBuilding { get; set; } = null;
+    public int DataOverlay { get; set; } = 0;
 
     public Game() {
         Terrain = new TerrainGrid(Res);
         NeighbourDist = new Field(Res);
         Beauty = new Field(Res);
-        Mobiles.Add(new Mobile {
-            Pos = Vector3.zero,
-            Aspects = Seq<MobileAspect>(new TreeCollectorAspect{ Home = Terrain.RandomPos() })
+        Pollution = new Field(Res);
+        Entities.Add(new Entity {
+            Pos = Vector3.zero, Type=Definitions.treeCollector
         });
     }
 
@@ -72,45 +78,46 @@ public class Game {
         foreach (var building in Buildings) {
             building.Update(dt, this);
         }
-        foreach (var mob in Mobiles) {
+        foreach (var mob in Entities) {
             mob.Update(dt, this);
         }
-        foreach (var item in Items) {
-            var viability = Terrain.Viability[(int)item.Pos.x, (int)item.Pos.z];
-            if (viability < 0.25f) {
-                item.IsDead = true;
-            }
-            item.Age = Math.Min(item.Age + viability * dt, item.Type.MaxAge);
-        }
         GrowTrees(dt);
-        UpdateBeauty(dt);
+        EnvironmentalBeauty(dt);
+        PollutionNaturalDecay(dt);
+        Beauty.Smooth(dt);
+        Pollution.Smooth(dt*PollutionDispersal);
         Beds = (int)Buildings.Sum(e => e.type.beds * compress(Beauty[e.Cell], halfAt: 5));
     }
 
-    public void UpdateBeauty(float dt) {
-        for (int x = 1; x < Terrain.Res; x++) {
-            for (int y = 1; y < Terrain.Res; y++) {
+    public void EnvironmentalBeauty(float dt) {
+        for (int x = 1; x < Terrain.Res-1; x++) {
+            for (int y = 1; y < Terrain.Res-1; y++) {
                 var w0 = Terrain.Water[x, y] > WaterLowThreshold;
                 var wx = Terrain.Water[x-1, y] > WaterLowThreshold;
                 var wy = Terrain.Water[x, y-1] > WaterLowThreshold;
-                if (w0 != wx || w0 != wy) { // cell is shoreline
+                var wX = Terrain.Water[x+1, y] > WaterLowThreshold;
+                var wY = Terrain.Water[x, y+1] > WaterLowThreshold;
+                if (w0 != wx || w0 != wy || w0 != wX || w0 != wY) { // cell is shoreline
                     Beauty[x, y] += dt*ShoreBeauty;
                 }
-                Beauty[x, y] = max(0, Beauty[x, y]*lerp(1,BeautyDecay,dt) + dt*BeautyBackground);
+                var b = Beauty[x, y] - Mathf.Sign(Beauty[x, y])*dt*BeautyDecay;
+                Beauty[x, y] = clamp(-BeautyMax, BeautyMax, b);
             }
         }
-        foreach (var building in Buildings) {
-            Beauty[building.Cell] += dt * building.type.beauty;
+    }
+
+    public void PollutionNaturalDecay(float dt) {
+        for (int x = 1; x < Terrain.Res-1; x++) {
+            for (int y = 1; y < Terrain.Res-1; y++) {
+                var decay = Pollution[x,y]>PollutionPersistTreshold ? 0 : PollutionDecay;
+                Pollution[x, y] = max(0, Pollution[x, y] - dt*decay);
+            }
         }
-        foreach (var e in Items) {
-            Beauty[Beauty.CellWithin(new Cell(e.Pos))] += dt * e.Type.Beauty;
-        }
-        Beauty.Smooth(dt);
     }
 
     public void GrowTrees(float dt) {
-        if (Items.Count < 10 && UnityEngine.Random.value < dt) {
-            Items.Add(new Item{
+        if (Entities.Count < 10 && UnityEngine.Random.value < dt) {
+            Entities.Add(new Entity{
                 Type = Definitions.tree,
                 Pos = Terrain.RandomPos()
             });

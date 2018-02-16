@@ -39,6 +39,7 @@ public class BuildingType {
     public Attr cost;
     public int beds;
     public float beauty;
+    public float pollution;
     public float buildTime;
     public List<BuildingAspect> Aspects = new List<BuildingAspect>();
     public BuildPredicate Predicate = new BuildPredicate.FlatGround();
@@ -74,13 +75,35 @@ public class TurnoverAspect : BuildingAspect {
     }
 }
 
+public class BeautyAspect : BuildingAspect {
+    public float Amount { get; set; }
+    public BeautyAspect(float amount) {
+        Amount = amount;
+    }
+    public void Update(float dt, Building self, Game game) {
+        game.Beauty[self.Cell] += dt * Amount;
+    }
+}
+
+public class PollutingAspect : BuildingAspect {
+    public float Amount { get; set; }
+    public PollutingAspect(float amount) {
+        Amount = amount;
+    }
+    public void Update(float dt, Building self, Game game) {
+        if (self.IsProducing) {
+            game.Pollution[self.Cell] = max(0, game.Pollution[self.Cell] + dt * Amount);
+        }
+    }
+}
+
 public class TreeHarvesterAspect : BuildingAspect {
     float Range => 7;
     public void Update(float dt, Building self, Game game) {
         if (self.IsProducing && Random.value * 2 < dt) {
             var pos = self.Cell.ToVector;
-            var tree = game.Items
-               .Where(e => e.Type.Kind == ItemKind.Plant)
+            var tree = game.Entities
+               .Where(e => e.Type.Name == "Tree")
                .FirstOrDefault(e => (e.Pos - pos).magnitude < Range);
             if (tree != null) {
                 tree.IsDead = true;

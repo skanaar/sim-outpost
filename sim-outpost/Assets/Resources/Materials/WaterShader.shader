@@ -31,13 +31,8 @@
         sampler2D _MainTex;
         sampler2D _BumpMap;
 
-        half _Glossiness;
-        half _Metallic;
-        fixed4 _Color;
-
         void surf(Input IN, inout SurfaceOutputStandard o) {
-            fixed4 c = tex2D(_MainTex, IN.uv_MainTex);
-            o.Albedo = c.rgb * float3(0.1,0.15,1);
+            o.Albedo = float3(0.1,0.15,1);
             o.Metallic = 0;
             o.Smoothness = 0.5;
             o.Normal = UnpackNormal(tex2D(_BumpMap, IN.uv_MainTex));

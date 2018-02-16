@@ -25,15 +25,16 @@ public class EngineCtrl : MonoBehaviour {
     }
 
     void AttachGameObject(Building building) {
-        var obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        var prefab = building.type.name.ToLower().Replace(' ', '-');
+        var obj = Instantiate(Resources.Load<GameObject>("Prefabs/" + prefab));
         obj.name = building.type.name;
         obj.transform.parent = Terrain.transform;
         building.GameObject = obj;
-        Mesh mesh = Definitions.Model(building.type.name);
-        building.GameObject.GetComponent<MeshFilter>().mesh = mesh;
+        //Mesh mesh = Definitions.Model(building.type.name);
+        //building.GameObject.GetComponent<MeshFilter>().mesh = mesh;
     }
 
-    void AttachGameObject(Item e) {
+    void AttachGameObjectToTree(Entity e) {
         var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         obj.name = "tree";
         obj.transform.parent = Terrain.transform;
@@ -43,8 +44,9 @@ public class EngineCtrl : MonoBehaviour {
         ctrl.Tree = new FractalTree();
     }
 
-    void AttachGameObject(Mobile e) {
-        var obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+    void AttachGameObject(Entity e) {
+        var prefab = e.Type.Name.ToLower().Replace(' ', '-');
+        var obj = Instantiate(Resources.Load<GameObject>("Prefabs/" + prefab));
         obj.name = "mobile";
         obj.transform.parent = Terrain.transform;
         e.GameObject = obj;
@@ -55,7 +57,7 @@ public class EngineCtrl : MonoBehaviour {
     Color BuildingColor(Building e) {
         if (!e.IsEnabled || !e.IsSupplied) return rgb(0x555);
         if (e.BuildProgress < 1) return rgb(0xDDD);
-        return Definitions.models[e.type.name].Color;
+        return rgb(0xFFF);
     }
 
     void PruneDead(IEnumerable<Killable> killables) {
@@ -80,23 +82,12 @@ public class EngineCtrl : MonoBehaviour {
         PruneDead(Game.Buildings);
         Game.Buildings.RemoveAll(e => e.IsDead);
 
-        foreach (var e in Game.Mobiles) {
+        foreach (var e in Game.Entities.Where(e => e.Type.Name != "Tree")) {
             if (e.GameObject == null) AttachGameObject(e);
             e.GameObject.transform.position = e.Pos;
         }
-        PruneDead(Game.Mobiles);
-        Game.Mobiles.RemoveAll(e => e.IsDead);
-
-        foreach (var item in Game.Items.Where(e => !e.IsDead)) {
-            if (item.GameObject == null) AttachGameObject(item);
-            var size = item.Age / item.Type.MaxAge;
-            var obj = item.GameObject;
-            obj.transform.localScale = size * new Vector3(1, 1, 1);
-            var material = item.GameObject.GetComponent<Renderer>().material;
-            material.color = rgb(0x0A0);
-        }
-        PruneDead(Game.Items);
-        Game.Items.RemoveAll(e => e.IsDead);
+        PruneDead(Game.Entities);
+        Game.Entities.RemoveAll(e => e.IsDead);
 
         InputFilter.Update();
         if (InputFilter.IsStartOfTap && Input.mousePosition.x > 110) {

@@ -1,8 +1,12 @@
 ﻿using UnityEngine;
 
 public class CameraCtrl : MonoBehaviour {
-    Game Game => Game.Instance;
+    static int btnW = 100;
+    static int btnH = 30;
+    static int padding = 10;
+    static string[] overlayNames = { "Terrain", "Beauty", "Pollution" };
 
+    Game Game => Game.Instance;
     Camera self;
 
 	void Start() {
@@ -27,22 +31,26 @@ public class CameraCtrl : MonoBehaviour {
     }
 
     void OnGUI() {
-        if (GUI.Button(new Rect(Screen.width/2 - 110, 10, 100, 20), "Zoom in")) {
+        if (GUI.Button(new Rect(Screen.width/2 - 110, 10, btnW, btnH), "Zoom in")) {
             Game.Zoom *= 0.8f;
         }
-        if (GUI.Button(new Rect(Screen.width/2 + 10, 10, 100, 20), "Zoom out")) {
+        if (GUI.Button(new Rect(Screen.width/2 + 10, 10, btnW, btnH), "Zoom out")) {
             Game.Zoom /= 0.8f;
+        }
+        var ot = overlayNames[Game.DataOverlay];
+        if (GUI.Button(new Rect(Screen.width/2 + 120, 10, btnW, btnH), ot)) {
+            Game.DataOverlay = (Game.DataOverlay+1)%3;
         }
 
         if (Game.SelectedBuilding == null) {
             var terraform = new Terraform { Game = Game };
-            if (GUI.Button(new Rect(10, 10, 100, 20), "Level")) {
+            if (GUI.Button(new Rect(10, 10, btnW, btnH), "Level")) {
                 terraform.LevelTerrain(Game.SelectedCell);
             }
-            if (GUI.Button(new Rect(10, 40, 100, 20), "Raise")) {
+            if (GUI.Button(new Rect(10, 20+btnH, btnW, btnH), "Raise")) {
                 terraform.AdjustTerrain(Game.SelectedCell, 0.25f);
             }
-            if (GUI.Button(new Rect(10, 70, 100, 20), "Lower")) {
+            if (GUI.Button(new Rect(10, 30+btnH*2, btnW, btnH), "Lower")) {
                 terraform.AdjustTerrain(Game.SelectedCell, -0.25f);
             }
             if (Game.NeighbourDist[Game.SelectedCell] > Game.BuildRange) {
@@ -50,15 +58,16 @@ public class CameraCtrl : MonoBehaviour {
             }
         }
         else {
-            if (GUI.Button(new Rect(10, 10, 100, 20), "Toggle")) {
+            if (GUI.Button(new Rect(10, 10, btnW, btnH), "Toggle")) {
                 Game.SelectedBuilding.IsEnabled = !Game.SelectedBuilding.IsEnabled;
             }
         }
         var i = 0;
+        var dh = btnH + padding;
         foreach (var type in Definitions.types) {
             if (type.Predicate.CanBuild(Game.SelectedCell, Game)) {
                 i++;
-                var didClick = GUI.Button(new Rect(10, 110+30*i, 100, 20), type.name);
+                var didClick = GUI.Button(new Rect(10, 3*dh+dh*i, btnW, btnH), type.name);
                 if (didClick) {
                     InputFilter.AbortTap();
                     Game.AddBuilding(type, Game.SelectedCell);

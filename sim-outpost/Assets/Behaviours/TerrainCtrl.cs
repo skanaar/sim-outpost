@@ -5,7 +5,9 @@ public class TerrainCtrl : MonoBehaviour {
 
     public static int TerrainLayer = 10;
 
+    Game Game => Game.Instance;
     TerrainGrid Terrain => Game.Instance.Terrain;
+    int lastDataOverlay = 0;
 
     void Start() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
@@ -25,11 +27,18 @@ public class TerrainCtrl : MonoBehaviour {
     }
 
     Color groundColor(int i, int j) {
+        float pollution = clamp(0, 1, Game.Pollution[i, j]*Game.PollutionOverlayScale);
+        float beauty = clamp(0, 1, 0.5f + Game.Beauty[i, j]*Game.BeautyOverlayScale);
+        float zone = getZone(i, j);
+        return new Color(pollution, beauty, 0, zone);
+    }
+
+    float getZone(int i, int j) {
         var waterMin = Game.Instance.WaterLowThreshold;
-        if (Terrain.Water[i, j] > waterMin) return rgb(0xBB8);
-        if (Terrain.PeakProminence[new Cell(i, j)] > 0.5) return rgb(0xAAA);
-        if (Terrain.Slope[i, j] <= Game.Instance.MaxBuildingSlope) return rgb(0x4F2);
-        return rgb(0x660);
+        if (Terrain.Water[i, j] > waterMin) return 0;
+        if (Terrain.PeakProminence[new Cell(i, j)] > 0.5) return 1;
+        if (Terrain.Slope[i, j] <= Game.Instance.MaxBuildingSlope) return 0.3f;
+        return 0.6f;
     }
 
     void UpdateMeshColor(int res) {
@@ -51,7 +60,6 @@ public class TerrainCtrl : MonoBehaviour {
                 var h = Terrain.Height[i, j];
                 vertices[i + res * j] = new Vector3(i, h, j);
                 uv[i + res * j] = new Vector2(i/(float)res, j/(float)res);
-                //colors[i + res * j] = lerp(Terrain.Spectrum, h / Terrain.MaxHeight);
                 colors[i + res * j] = groundColor(i, j);
             }
         }
@@ -90,5 +98,14 @@ public class TerrainCtrl : MonoBehaviour {
     }
 
     void Update() {
+        if (lastDataOverlay != Game.Instance.DataOverlay) {
+            lastDataOverlay = Game.Instance.DataOverlay;
+            var rendr = GetComponent<Renderer>(); 
+            switch (Game.Instance.DataOverlay) {
+                case 0: rendr.material = Materials.Ground; break;
+                case 1: rendr.material = Materials.GroundBeauty; break;
+                default: rendr.material = Materials.GroundPollution; break;
+            }
+        }
 	}
 }
