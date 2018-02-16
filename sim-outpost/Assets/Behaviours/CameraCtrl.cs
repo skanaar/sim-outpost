@@ -11,7 +11,6 @@ public class CameraCtrl : MonoBehaviour {
 
 	void Start() {
         var terrain = Game.Instance.Terrain;
-        transform.position = terrain.GetCellFloor(terrain.Res / 2, terrain.Res / 2);
         transform.Rotate(new Vector3(25, 20, 0));
         self = GetComponent<Camera>();
         self.farClipPlane = 200;

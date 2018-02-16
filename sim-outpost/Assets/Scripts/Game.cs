@@ -51,6 +51,7 @@ public class Game {
         Entities.Add(new Entity {
             Pos = Vector3.zero, Type=Definitions.treeCollector
         });
+        Pan = Terrain.GetCellFloor(Res / 2, Res / 2);
     }
 
     public void AddBuilding(BuildingType type, Cell cell) {
