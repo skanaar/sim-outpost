@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using static Util;
@@ -8,8 +9,6 @@ public class Game {
     public static Game Instance { get; private set; } = new Game();
 
     internal TerrainCtrl TerrainController;
-    Updater economyUpdater;
-    Updater environmentUpdater;
 
     // constants
     public int Res = 50;
@@ -31,14 +30,15 @@ public class Game {
     // game state
     public float Time => UnityEngine.Time.time;
     public TerrainGrid Terrain;
-    public List<Building> Buildings { get; } = new List<Building>();
+    public List<Building> Buildings { get; private set; } = new List<Building>();
     public List<Entity> Entities { get; } = new List<Entity>();
     public Field NeighbourDist;
     public Field Beauty;
     public Field Pollution;
     public Attr Store { get; set; } = Definitions.StartingCommodities;
     public int Beds { get; set; } = 0;
-    public int Population { get; set; } = 0;
+    public int WorkforceDemand { get; set; } = 0;
+    public int Population { get; set; } = 10;
 
     // ui state
     public float Zoom = 1.0f;
@@ -54,12 +54,9 @@ public class Game {
         Beauty = new Field(Res);
         Pollution = new Field(Res);
         Entities.Add(new Entity {
-            Pos = Vector3.zero, Type=Definitions.treeCollector
+            Pos = Terrain.GetCellFloor(Res/2, Res/2), Type=Definitions.treeCollector
         });
         Pan = Terrain.GetCellFloor(Res / 2, Res / 2);
-        economyUpdater = new Updater(UpdatePeriod, UpdateEconomy);
-        environmentUpdater = new Updater(UpdatePeriod*4, UpdateEnvironment);
-
     }
 
     public void AddBuilding(BuildingType type, Cell cell) {
@@ -69,16 +66,25 @@ public class Game {
         var building = new Building { type = type, Cell = cell };
         Buildings.Add(building);
         SelectedBuilding = building;
+        CalcNeighbourDistances();
+    }
+
+    public void CalcNeighbourDistances() {
+        var defaultDist = Buildings.Count > 0 ? 1000 : 0;
         for (int i = 0; i < Terrain.Res; i++) {
             for (int j = 0; j < Terrain.Res; j++) {
-                NeighbourDist.field[i, j] = 1000;
+                NeighbourDist[i, j] = defaultDist;
                 foreach (var e in Buildings) {
-                    var x = NeighbourDist.field[i, j];
+                    var x = NeighbourDist[i, j];
                     var dist = (e.Cell.ToVector - new Vector3(i, 0, j)).magnitude;
-                    NeighbourDist.field[i, j] = Math.Min(x, dist);
+                    NeighbourDist[i, j] = Math.Min(x, dist);
                 }
             }
         }
+    }
+
+    public bool ShouldTrigger(float dt, float period) {
+        return (Time > period) && (Time % period > (Time+dt) % period);
     }
 
     public void Stabilize(int steps) {
@@ -101,15 +107,17 @@ public class Game {
         foreach (var mob in Entities) {
             mob.Update(dt, this);
         }
-        economyUpdater.Update(dt);
-        environmentUpdater.Update(dt);
+        if (ShouldTrigger(dt, UpdatePeriod)) UpdateEconomy(dt);
+        if (ShouldTrigger(dt, UpdatePeriod*4)) UpdateEnvironment(dt);
+        if (ShouldTrigger(dt, 10)) SaveGame();
     }
 
     public void UpdateEconomy(float dt) {
         foreach (var building in Buildings) {
             building.Update(dt, this);
         }
-        Beds = (int)Buildings.Sum(e => e.type.beds * compress(Beauty[e.Cell], halfAt: 5));
+        Beds = Buildings.Sum(e => e.type.beds);
+        WorkforceDemand = Buildings.Sum(e => e.type.workforce);
     }
 
     public void UpdateEnvironment(float dt) {
@@ -162,21 +170,68 @@ public class Game {
         SelectedCell = new Cell(HoverPoint);
         SelectedBuilding = Buildings.FirstOrDefault(e => e.IsOccupying(SelectedCell));
     }
+
+    public void SaveGame() {
+        var path = Application.persistentDataPath + "/save.json";
+        Debug.Log($"Saving to ${path}");
+        var data = JsonUtility.ToJson(SavedGame.Create(this), prettyPrint: true);
+        File.WriteAllText(path, data);
+    }
+
+    public void LoadGame() {
+        var path = Application.persistentDataPath + "/save.json";
+        Debug.Log($"Loading from ${path}");
+        if (File.Exists(path)) {
+            var json = File.ReadAllText(path);
+            var state = JsonUtility.FromJson<SavedGame>(json);
+            Store = state.Store;
+            Population = state.Population;
+            Terrain = new TerrainGrid(state.Height, state.Water);
+            Beauty.field = state.Beauty.field;
+            Pollution.field = state.Pollution.field;
+            Buildings = state.Buildings.Select(SavedBuilding.Instantiate).ToList();
+            CalcNeighbourDistances();
+            UpdateEnvironment(0.01f);
+        }
+
+    }
 }
 
-public class Updater {
-    public float Period = 0.1f;
-    public Action<float> Callback;
-    float accumulatedDeltaTime = 0;
-    public Updater(float period, Action<float> callback) {
-        Period = period;
-        Callback = callback;
-    }
-    public void Update(float dt) {
-        accumulatedDeltaTime += dt;
-        if (accumulatedDeltaTime > Period) {
-            Callback(accumulatedDeltaTime);
-            accumulatedDeltaTime = 0;
-        }
-    }
+[Serializable]
+public class SavedGame {
+    public Attr Store;
+    public int Population;
+    public Field Height;
+    public Field Water;
+    public Field Beauty;
+    public Field Pollution;
+    public SavedBuilding[] Buildings;
+    public static SavedGame Create(Game game) => new SavedGame {
+        Store = game.Store,
+        Population = game.Population,
+        Height = game.Terrain.Height,
+        Water = game.Terrain.Water,
+        Beauty = game.Beauty,
+        Pollution = game.Pollution,
+        Buildings = game.Buildings.Select(SavedBuilding.Create).ToArray()
+    };
+}
+
+[Serializable]
+public class SavedBuilding {
+    public Cell Cell;
+    public string Type;
+    public float BuildProgress;
+    public bool IsEnabled;
+    public static SavedBuilding Create(Building e) => new SavedBuilding {
+        Cell = e.Cell,
+        Type = e.type.name,
+        BuildProgress = max(1, e.BuildProgress),
+        IsEnabled = e.IsEnabled
+    };
+    public static Building Instantiate(SavedBuilding e) => new Building {
+        Cell = e.Cell,
+        BuildProgress = e.BuildProgress,
+        type = Definitions.types.First(t => t.name == e.Type)
+    };
 }

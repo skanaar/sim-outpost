@@ -23,6 +23,7 @@ public class EngineCtrl : MonoBehaviour {
         water.name = "water";
         water.AddComponent<WaterCtrl>();
         Game.Stabilize(100);
+        Game.LoadGame();
     }
 
     void AttachGameObject(Building building) {
@@ -31,8 +32,6 @@ public class EngineCtrl : MonoBehaviour {
         obj.name = building.type.name;
         obj.transform.parent = Terrain.transform;
         building.GameObject = obj;
-        //Mesh mesh = Definitions.Model(building.type.name);
-        //building.GameObject.GetComponent<MeshFilter>().mesh = mesh;
     }
 
     void AttachGameObjectToTree(Entity e) {
@@ -94,7 +93,8 @@ public class EngineCtrl : MonoBehaviour {
             Game.SelectCell();
         }
         if (InputFilter.Hold) {
-            Game.Pan += 0.001f * new Vector3(InputFilter.Swipe.x, 0, InputFilter.Swipe.y);
+            var delta = new Vector3(InputFilter.Swipe.x, 0, InputFilter.Swipe.y);
+            Game.Pan += 0.01f * Game.Zoom * delta;
         }
     }
 }

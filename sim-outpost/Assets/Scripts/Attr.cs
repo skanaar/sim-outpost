@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
+[Serializable]
 public struct Attr {
     public static Attr Zero = new Attr();
 

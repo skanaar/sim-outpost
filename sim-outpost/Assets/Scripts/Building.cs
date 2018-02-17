@@ -41,6 +41,7 @@ public class BuildingType {
     public Attr turnover;
     public Attr cost;
     public int beds;
+    public int workforce;
     public float beauty;
     public float pollution;
     public float buildTime;
@@ -96,6 +97,24 @@ public class PollutingAspect : BuildingAspect {
     public void Update(float dt, Building self, Game game) {
         if (self.IsProducing) {
             game.Pollution[self.Cell] = max(0, game.Pollution[self.Cell] + dt * Amount);
+        }
+    }
+}
+
+public class MigrationAspect : BuildingAspect {
+    int LandingPeriod = 10;
+    int LandingPollution = 5;
+    public void Update(float dt, Building self, Game game) {
+        var isLaunchWindow = game.ShouldTrigger(dt, LandingPeriod);
+        if (self.IsProducing && isLaunchWindow) {
+            if (game.Population < game.Beds && game.Population < game.WorkforceDemand) {
+                game.Population += 1;
+                game.Pollution[self.Cell] += LandingPollution;
+            }
+            if (game.Population > game.Beds || game.Population > game.WorkforceDemand) {
+                game.Population -= 1;
+                game.Pollution[self.Cell] += LandingPollution;
+            }
         }
     }
 }
@@ -163,8 +182,8 @@ public class HydroPowerAspect : BuildingAspect {
                     var water = ground[i, j] + game.Terrain.Water[i, j];
                     if (low < water) {
                         var intake = min(game.Terrain.Water[i, j], MaxIntake);
-                        game.Terrain.Water.field[i, j] -= dt * intake;
-                        game.Terrain.Water.field[lowCell.i, lowCell.j] += dt * intake;
+                        game.Terrain.Water[i, j] -= dt * intake;
+                        game.Terrain.Water[lowCell.i, lowCell.j] += dt * intake;
                         self.LastTurnover = new Attr { energy = intake * EnergyPerWater };
                         game.Store += dt * self.LastTurnover;
                     }

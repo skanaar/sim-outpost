@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using static Util;
 
+[Serializable]
 public struct Cell {
-    public readonly int i;
-    public readonly int j;
+    public int i;
+    public int j;
     public Cell(Vector3 vec): this((int)(vec.x), (int)(vec.z)) {}
     public Cell(int i, int j) {
         this.i = i;
@@ -20,24 +22,26 @@ public struct Cell {
     public override int GetHashCode() => i + 31*j;
 }
 
+[Serializable]
 public class Field {
-    public readonly float[,] field;
-    public int Res => field.GetLength(0);
+    public float[] field;
+    public int Res;
     public Field(int res, float value = 0) {
-        field = new float[res, res];
+        Res = res;
+        field = new float[res*res];
         for (int i = 0; i < res; i++) {
             for (int j = 0; j < res; j++) {
-                field[i, j] = value;
+                field[i + res*j] = value;
             }
         }
     }
     public float this[int i, int j] {
-        get { return field[i, j]; }
-        set { field[i, j] = value; }
+        get { return field[i + Res*j]; }
+        set { field[i + Res*j] = value; }
     }
     public float this[Cell cell] {
-        get { return field[cell.i, cell.j]; }
-        set { field[cell.i, cell.j] = value; }
+        get { return field[cell.i + Res*cell.j]; }
+        set { field[cell.i + Res*cell.j] = value; }
     }
     public float this[Vector3 p] {
         get {
@@ -61,24 +65,24 @@ public class Field {
             for (int y = 0; y < Res; y++) {
                 var y_ = max(0, y-1);
                 var y1 = min(Res-1, y+1);
-                var h = field[x, y];
-                var d00 = field[x_, y];
-                var d10 = field[x1, y];
-                var d01 = field[x, y_];
-                var d11 = field[x, y1];
+                var h = this[x, y];
+                var d00 = this[x_, y];
+                var d10 = this[x1, y];
+                var d01 = this[x, y_];
+                var d11 = this[x, y1];
                 diff[x, y] = (d00 + d10 + d01 + d11) / 4 - h;
             }
         }
         for (int x = 0; x < Res; x++) {
             for (int y = 0; y < Res; y++) {
-                field[x, y] += step * diff[x, y];
+                this[x, y] += step * diff[x, y];
             }
         }
     }
     public void Multiply(float k) {
         for (int x = 0; x < Res; x++) {
             for (int y = 0; y < Res; y++) {
-                field[x, y] *= k;
+                this[x, y] *= k;
             }
         }
     }

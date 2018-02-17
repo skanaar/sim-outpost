@@ -10,7 +10,13 @@ public class HudCtrl : MonoBehaviour {
         text = gameObject.GetComponent<Text>(); 
 	}
 	
-	void Update () {
-        text.text = Game.Store.HudString();
+    void Update () {
+        var state = string.Join("\n", new string[]{
+            "beds " + Game.Beds,
+            "colonists " + Game.Population,
+            "workforce " + Game.WorkforceDemand,
+            ""
+        });
+        text.text = state + "\n" + Game.Store.HudString();
     }
 }

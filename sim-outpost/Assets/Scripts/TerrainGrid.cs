@@ -10,23 +10,29 @@ public class TerrainGrid {
     public Field Height;
     public Field Water;
     public Slope Slope;
-    public PeakProminence PeakProminence => new PeakProminence(Height);
-    public float[,] Viability;
+    public PeakProminence PeakProminence;
 
     public TerrainGrid(int res) {
         Res = res;
         Height = new Field(res);
-        Slope = new Slope(Height);
         Water = new Field(res);
-        Viability = new float[Res, Res];
+        Slope = new Slope(Height);
+        PeakProminence = new PeakProminence(Height);
         for (int x = 0; x < Res; x++) {
             for (int y = 0; y < Res; y++) {
                 float slope = 20 * (1 - Mathf.Cos(sqrt(sq(x-Res/2) + sq(y-Res/2))/Res));
-                Height.field[x, y] = MaxHeight * lerp(curve, noise[x, y]) - slope;
-                Viability[x, y] = 1 - Height[x, y] / MaxHeight;
-                Water.field[x, y] = 0.1f;
+                Height[x, y] = MaxHeight * lerp(curve, noise[x, y]) - slope;
+                Water[x, y] = 0.1f;
             }
         }
+    }
+
+    public TerrainGrid(Field height, Field water) {
+        Res = height.Res;
+        Height = height;
+        Water = water;
+        Slope = new Slope(height);
+        PeakProminence = new PeakProminence(Height);
     }
 
     public void Update(float dt) {
@@ -53,7 +59,7 @@ public class TerrainGrid {
         }
         for (int x = 0; x < Res; x++) {
             for (int y = 0; y < Res; y++) {
-                Water.field[x, y] += step * diff[x, y] + step * 0.0001f;
+                Water[x, y] += step * diff[x, y] + step * 0.0001f;
             }
         }
     }

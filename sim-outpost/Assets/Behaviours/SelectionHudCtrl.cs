@@ -15,8 +15,8 @@ public class SelectionHudCtrl : MonoBehaviour {
         if (e != null) {
             text.text = BuildingDesc(e);
         }
-        else if (Game.Terrain.Height.field.ContainsCell(Game.SelectedCell)) {
-            text.text = CellDesc(Game.Instance.SelectedCell);
+        else  {
+            text.text = CellDesc(Game.Terrain.Height.CellWithin(Game.SelectedCell));
         }
     }
 
