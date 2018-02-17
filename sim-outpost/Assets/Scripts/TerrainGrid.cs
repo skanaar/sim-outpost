@@ -76,7 +76,20 @@ public class TerrainGrid {
         float h3 = Height[(i + 0), (j + 1)];
         float h4 = Height[(i + 1), (j + 1)];
         float h = min(min(h1, h2), min(h3, h4));
-        return new Vector3(i + 0.5f, h, j + 0.5f);
+        return new Vector3(i, h, j);
+    }
+
+    public float AverageHeight(int i, int j, int w, int h) {
+        if (i < 0 || i > Res-1-w || j < 0 || j > Res-1-h) {
+            return 0;
+        }
+        float sum = 0;
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                sum += Height[i+x, j+y];
+            }
+        }
+        return sum/(w*h);
     }
 
     internal Vector3 RandomPos() {

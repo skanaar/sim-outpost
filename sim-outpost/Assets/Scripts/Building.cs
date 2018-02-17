@@ -7,7 +7,7 @@ public class Building : Killable {
     public BuildingType type;
     public Cell Cell;
     public bool IsEnabled = true;
-    public bool IsSupplied;
+    public bool IsSupplied = true;
     public float BuildProgress;
     public Attr LastTurnover = Attr.Zero;
     public bool IsDead { get; set; }
@@ -196,7 +196,7 @@ public class HydroPowerAspect : BuildingAspect {
 public abstract class BuildPredicate {
     public abstract bool CanBuild(Cell cell, Game game);
     public static bool IsEmpty(Cell cell, Game game) {
-        return game.Buildings.All(e => e.Cell != cell);
+        return game.Buildings.All(e => !e.IsOccupying(cell));
     }
 
     public class Upgrade : BuildPredicate {

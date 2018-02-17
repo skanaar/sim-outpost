@@ -73,8 +73,9 @@ public class EngineCtrl : MonoBehaviour {
         foreach (var e in Game.Buildings) {
             if (e.GameObject == null) AttachGameObject(e);
             var obj = e.GameObject;
-            obj.transform.position = Game.Terrain.GetCellFloor(e.Cell);
-            obj.transform.position += new Vector3(e.type.w / 2, 0, e.type.h / 2);
+            var h = Game.Terrain.AverageHeight(e.Cell.i, e.Cell.j, e.type.w, e.type.h);
+            var center = e.Cell.ToVector + 0.5f * new Vector3(e.type.w, 0, e.type.h);
+            obj.transform.position = center + new Vector3(0,h,0);
             obj.transform.localScale = new Vector3(1, (0.2f + 0.8f*e.BuildProgress), 1);
             e.GameObject.GetComponent<Renderer>().material.color = BuildingColor(e);
         }
@@ -94,7 +95,7 @@ public class EngineCtrl : MonoBehaviour {
         }
         if (InputFilter.Hold) {
             var delta = new Vector3(InputFilter.Swipe.x, 0, InputFilter.Swipe.y);
-            Game.Pan += 0.01f * Game.Zoom * delta;
+            Game.Pan += 0.003f * Game.Zoom * delta;
         }
     }
 }

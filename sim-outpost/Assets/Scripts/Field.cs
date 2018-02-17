@@ -57,7 +57,7 @@ public class Field {
         return new Cell(clamp(1, Res-2, cell.i), clamp(1, Res-2, cell.j));
     }
     public void Smooth(float dt) {
-        var step = max(1, dt);
+        float step = max(0.5f, dt);
         var diff = new float[Res, Res];
         for (int x = 0; x < Res; x++) {
             var x_ = max(0, x-1);

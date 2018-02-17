@@ -28,7 +28,9 @@ public class Definitions {
             buildTime = 2
         },
         new BuildingType("Launch Pad", new PollutingAspect(1), new MigrationAspect()) {
-            turnover = new Attr { energy = 2, fuel = -1 },
+            turnover = new Attr(),
+            w = 2,
+            h = 2,
             cost = new Attr { metal = 30 },
             buildTime = 10
         },

@@ -28,7 +28,7 @@ public class Game {
     public float UpdatePeriod = 0.1f;
 
     // game state
-    public float Time => UnityEngine.Time.time;
+    public float Time = 0;
     public TerrainGrid Terrain;
     public List<Building> Buildings { get; private set; } = new List<Building>();
     public List<Entity> Entities { get; } = new List<Entity>();
@@ -99,6 +99,7 @@ public class Game {
     }
 
     public void Update(float dt) {
+        Time += dt;
         Terrain.Update(dt);
         TerrainController.OnWaterChange();
         foreach (var building in Buildings) {
