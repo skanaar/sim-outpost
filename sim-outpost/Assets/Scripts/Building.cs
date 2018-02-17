@@ -25,7 +25,10 @@ public class Building : Killable {
                 aspect.Update(dt, this, game);
             }
         }
-        else {
+    }
+
+    public void UpdateConstructing(float dt, Game game) {
+        if (BuildProgress < 1) {
             ConstructionAspect.Instance.Update(dt, this, game);
         }
     }

@@ -8,6 +8,8 @@ public class Game {
     public static Game Instance { get; private set; } = new Game();
 
     internal TerrainCtrl TerrainController;
+    Updater economyUpdater;
+    Updater environmentUpdater;
 
     // constants
     public int Res = 50;
@@ -22,6 +24,9 @@ public class Game {
     public float PollutionOverlayScale = 5f;
     public float BeautyOverlayScale = 0.2f;
     public float BeautyMax = 1f;
+
+    // engine settings
+    public float UpdatePeriod = 0.1f;
 
     // game state
     public float Time => UnityEngine.Time.time;
@@ -52,6 +57,9 @@ public class Game {
             Pos = Vector3.zero, Type=Definitions.treeCollector
         });
         Pan = Terrain.GetCellFloor(Res / 2, Res / 2);
+        economyUpdater = new Updater(UpdatePeriod, UpdateEconomy);
+        environmentUpdater = new Updater(UpdatePeriod*4, UpdateEnvironment);
+
     }
 
     public void AddBuilding(BuildingType type, Cell cell) {
@@ -73,21 +81,46 @@ public class Game {
         }
     }
 
+    public void Stabilize(int steps) {
+        var dt = 0.4f;
+        for (int i = 0; i < steps; i++) {
+            Terrain.Update(dt);
+        }
+        for (int i = 0; i < steps; i++) {
+            EnvironmentalBeauty(dt);
+            Beauty.Smooth(dt);
+        }
+    }
+
     public void Update(float dt) {
         Terrain.Update(dt);
         TerrainController.OnWaterChange();
         foreach (var building in Buildings) {
-            building.Update(dt, this);
+            building.UpdateConstructing(dt, this);
         }
         foreach (var mob in Entities) {
             mob.Update(dt, this);
+        }
+        economyUpdater.Update(dt);
+        environmentUpdater.Update(dt);
+    }
+
+    public void UpdateEconomy(float dt) {
+        foreach (var building in Buildings) {
+            building.Update(dt, this);
+        }
+        Beds = (int)Buildings.Sum(e => e.type.beds * compress(Beauty[e.Cell], halfAt: 5));
+    }
+
+    public void UpdateEnvironment(float dt) {
+        foreach (var building in Buildings) {
+            building.Update(dt, this);
         }
         GrowTrees(dt);
         EnvironmentalBeauty(dt);
         PollutionNaturalDecay(dt);
         Beauty.Smooth(dt);
         Pollution.Smooth(dt*PollutionDispersal);
-        Beds = (int)Buildings.Sum(e => e.type.beds * compress(Beauty[e.Cell], halfAt: 5));
     }
 
     public void EnvironmentalBeauty(float dt) {
@@ -128,5 +161,22 @@ public class Game {
     public void SelectCell() {
         SelectedCell = new Cell(HoverPoint);
         SelectedBuilding = Buildings.FirstOrDefault(e => e.IsOccupying(SelectedCell));
+    }
+}
+
+public class Updater {
+    public float Period = 0.1f;
+    public Action<float> Callback;
+    float accumulatedDeltaTime = 0;
+    public Updater(float period, Action<float> callback) {
+        Period = period;
+        Callback = callback;
+    }
+    public void Update(float dt) {
+        accumulatedDeltaTime += dt;
+        if (accumulatedDeltaTime > Period) {
+            Callback(accumulatedDeltaTime);
+            accumulatedDeltaTime = 0;
+        }
     }
 }

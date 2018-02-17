@@ -22,6 +22,7 @@ public class EngineCtrl : MonoBehaviour {
         var water = GameObject.CreatePrimitive(PrimitiveType.Cube);
         water.name = "water";
         water.AddComponent<WaterCtrl>();
+        Game.Stabilize(100);
     }
 
     void AttachGameObject(Building building) {
@@ -70,7 +71,6 @@ public class EngineCtrl : MonoBehaviour {
 
     void Update() {
         Game.Update(Time.deltaTime);
-
         foreach (var e in Game.Buildings) {
             if (e.GameObject == null) AttachGameObject(e);
             var obj = e.GameObject;
