@@ -86,6 +86,39 @@ public class Field {
             }
         }
     }
+    public float Average(int i, int j, int w, int h) {
+        int xMax = min(Res, i+w);
+        int yMax = min(Res, j+h);
+        float sum = 0;
+        for (int x = max(0, i); x < xMax; x++) {
+            for (int y = max(0, j); y < yMax; y++) {
+                sum += field[i + Res*y];
+            }
+        }
+        return sum/(w*h);
+    }
+    public float Minimum(int i, int j, int w, int h) {
+        int xMax = min(Res, i+w);
+        int yMax = min(Res, j+h);
+        float value = Mathf.Infinity;
+        for (int x = max(0, i); x < xMax; x++) {
+            for (int y = max(0, j); y < yMax; y++) {
+                value = min(value, field[i + Res*y]);
+            }
+        }
+        return value;
+    }
+    public float Maximum(int i, int j, int w, int h) {
+        int xMax = min(Res, i+w);
+        int yMax = min(Res, j+h);
+        float value = Mathf.NegativeInfinity;
+        for (int x = max(0, i); x < xMax; x++) {
+            for (int y = max(0, j); y < yMax; y++) {
+                value = max(value, field[x + Res*y]);
+            }
+        }
+        return value;
+    }
 }
 
 public class Slope {

@@ -4,7 +4,7 @@ public class CameraCtrl : MonoBehaviour {
     static int btnW = 100;
     static int btnH = 30;
     static int padding = 10;
-    static string[] overlayNames = { "Terrain", "Beauty", "Pollution" };
+    static string[] overlayNames = { "Terrain", "Beauty", "Pollution", "X Flow" };
 
     Game Game => Game.Instance;
     Camera self;
@@ -26,7 +26,8 @@ public class CameraCtrl : MonoBehaviour {
         }
         self.orthographicSize = 5 * Game.Zoom;
         transform.rotation = Quaternion.Euler(25/Game.Zoom, 20*Game.Zoom, 0);
-        transform.position = Game.Pan;
+        var h = Game.Terrain.Height[Game.Pan];
+        transform.position = new Vector3(Game.Pan.x, h, Game.Pan.z);
     }
 
     void OnGUI() {
@@ -38,7 +39,7 @@ public class CameraCtrl : MonoBehaviour {
         }
         var ot = overlayNames[Game.DataOverlay];
         if (GUI.Button(new Rect(Screen.width/2 + 120, 10, btnW, btnH), ot)) {
-            Game.DataOverlay = (Game.DataOverlay+1)%3;
+            Game.DataOverlay = (Game.DataOverlay+1)%4;
         }
 
         if (Game.SelectedBuilding == null) {

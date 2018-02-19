@@ -30,7 +30,7 @@ public class TerrainCtrl : MonoBehaviour {
         float pollution = clamp(0, 1, Game.Pollution[i, j]*Game.PollutionOverlayScale);
         float beauty = clamp(0, 1, 0.5f + Game.Beauty[i, j]*Game.BeautyOverlayScale);
         float zone = getZone(i, j);
-        return new Color(pollution, beauty, 0, zone);
+        return new Color(pollution, beauty, Game.Terrain.XFlow[i,j], zone);
     }
 
     float getZone(int i, int j) {
@@ -104,7 +104,9 @@ public class TerrainCtrl : MonoBehaviour {
             switch (Game.Instance.DataOverlay) {
                 case 0: rendr.material = Materials.Ground; break;
                 case 1: rendr.material = Materials.GroundBeauty; break;
-                default: rendr.material = Materials.GroundPollution; break;
+                case 2: rendr.material = Materials.GroundPollution; break;
+                case 3: rendr.material = Materials.GroundBeauty; break;
+                default: rendr.material = Materials.Ground; break;
             }
         }
 	}
