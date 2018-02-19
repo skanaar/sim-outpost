@@ -1,15 +1,23 @@
 ﻿using UnityEngine;
+using System.Linq;
 
 public class Entity : Killable {
     public Vector3 Pos { get; set; }
+    public Vector3 Dir { get; set; } = new Vector3(1, 0, 0);
     public bool IsDead { get; set; }
     public GameObject GameObject { get; set; }
     public EntityType Type { get; set; }
     public float Age { get; set; }
+    public EntityAspect[] aspects;
+    public EntityAspect[] Aspects {
+        get {
+            return aspects = (aspects ?? Type.Aspects.Select(e => e.Clone()).ToArray());
+        }
+    }
 
     public void Update(float dt, Game game) {
         Age += dt;
-        foreach (var aspect in Type.Aspects) {
+        foreach (var aspect in Aspects) {
             aspect.Update(dt, this, game);
         }
     }
@@ -29,17 +37,46 @@ public class EntityType {
 
 public interface EntityAspect {
     void Update(float dt, Entity self, Game game);
+    EntityAspect Clone();
+}
+
+public class SpawnAspect : EntityAspect {
+    public float MaxPollution { get; set; }
+    public float MaxWater { get; set; }
+    public float Period { get; set; }
+    public float Distance { get; set; }
+    public void Update(float dt, Entity self, Game game) {
+        if (game.ShouldTrigger(dt, Period)) {
+            var p = self.Pos + Random.onUnitSphere;
+            var cell = game.Pollution.CellWithin(new Cell(p));
+            if (game.EntityDensity[cell] < 1 &&
+                game.Pollution[cell] < MaxPollution &&
+                game.Terrain.Water[cell] < MaxWater
+               ) {
+                game.SpawnedEntities.Add(new Entity {
+                    Type = self.Type,
+                    Pos = new Vector3(p.x, game.Terrain.Height[p], p.z)
+                });
+            }
+        }
+    }
+    public EntityAspect Clone() => new SpawnAspect {
+        MaxPollution = MaxPollution,
+        MaxWater = MaxWater,
+        Distance = Distance,
+        Period = Period
+    };
 }
 
 public class BeautifulCreature : EntityAspect {
     public float Beauty { get; set; }
     public void Update(float dt, Entity self, Game game) {
-        var cell = game.Beauty.CellWithin(new Cell(self.Pos));
-        game.Beauty[cell] += dt * Beauty;
+        game.Beauty[self.Pos] += dt * Beauty;
     }
+    public EntityAspect Clone() => new BeautifulCreature { Beauty = Beauty };
 }
 
-public abstract class MoveToTargetAspect : EntityAspect {
+public abstract class MoveToTargetAspect {
     public float Speed = 0.5f;
     public abstract Vector3? TargetPos { get; }
     public abstract void FindNewTarget(Game game);
@@ -49,18 +86,18 @@ public abstract class MoveToTargetAspect : EntityAspect {
             FindNewTarget(game);
         }
         else {
-            var dir = (TargetPos.Value - self.Pos);
-            var p = self.Pos + dt * Speed * dir.normalized;
+            self.Dir = (TargetPos.Value - self.Pos);
+            var p = self.Pos + dt * Speed * self.Dir.normalized;
             var h = game.Terrain.Height[p] + game.Terrain.Water[p];
             self.Pos = new Vector3(p.x, h, p.z);
-            if (dir.magnitude < 0.5f) {
+            if (self.Dir.magnitude < 0.5f) {
                 ReachTarget(game);
             }
         }
     }
 }
 
-public class TreeCollectorAspect : MoveToTargetAspect {
+public class TreeCollectorAspect : MoveToTargetAspect, EntityAspect {
     public float Range = 5f;
     public Vector3 Home { get; set; }
     public Entity Target { get; set; }
@@ -78,9 +115,10 @@ public class TreeCollectorAspect : MoveToTargetAspect {
         game.Store += Target.Type.Contents;
         Target.IsDead = true;
     }
+    public EntityAspect Clone() => new TreeCollectorAspect();
 }
 
-public class RandomMoveAspect : MoveToTargetAspect {
+public class RandomMoveAspect : MoveToTargetAspect, EntityAspect {
     Vector3? targetPos = null;
     public override Vector3? TargetPos => targetPos;
     public override void FindNewTarget(Game game) {
@@ -89,4 +127,5 @@ public class RandomMoveAspect : MoveToTargetAspect {
     public override void ReachTarget(Game game) {
         targetPos = null;
     }
+    public EntityAspect Clone() => new RandomMoveAspect();
 }

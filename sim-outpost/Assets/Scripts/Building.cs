@@ -194,28 +194,30 @@ public class HydroPowerAspect : BuildingAspect {
 }
 
 public abstract class BuildPredicate {
-    public abstract bool CanBuild(Cell cell, Game game);
-    public static bool IsEmpty(Cell cell, Game game) {
+    public abstract bool CanBuild(BuildingType type, Cell cell, Game game);
+    public static bool IsEmpty(BuildingType type, Cell cell, Game game) {
         return game.Buildings.All(e => !e.IsOccupying(cell));
     }
 
     public class Upgrade : BuildPredicate {
         public string From;
-        public override bool CanBuild(Cell cell, Game game) {
+        public override bool CanBuild(BuildingType type, Cell cell, Game game) {
             return game.Buildings.Any(e => e.Cell == cell && e.type.name == From);
         }
     }
 
     public class FlatGround : BuildPredicate {
-        public override bool CanBuild(Cell cell, Game game) {
-            return IsEmpty(cell, game) && game.Terrain.Slope[cell] < Game.Instance.MaxBuildingSlope;
+        public override bool CanBuild(BuildingType type, Cell cell, Game game) {
+            var empty = IsEmpty(type, cell, game);
+            var flat = game.Terrain.Slope[cell] < Game.Instance.MaxBuildingSlope;
+            var water = game.Terrain.Water.Maximum(cell.i, cell.j, type.w, type.h);
+            return empty && flat && (water < game.WaterLowThreshold);
         }
     }
 
     public class Windy : BuildPredicate {
-        public override bool CanBuild(Cell cell, Game game) {
-            var isPeak = new PeakProminence(game.Terrain.Height)[cell] > 0;
-            return IsEmpty(cell, game) && isPeak;
+        public override bool CanBuild(BuildingType type, Cell cell, Game game) {
+            return IsEmpty(type, cell, game) && game.Terrain.PeakProminence[cell] > 0;
         }
     }
 }

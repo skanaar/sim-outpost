@@ -4,20 +4,25 @@ using UnityEngine;
 public class Definitions {
     
     public static Attr StartingCommodities = new Attr {
-        metal = 100, biosludge = 20, fuel = 100, energy = 200, water = 100
+        metal = 100, biosludge = 20, fuel = 100, energy = 1000, water = 100
     };
 
     public static EntityType treeCollector = new EntityType {
         Name = "Collector",
         Aspects = new EntityAspect[]{
-            new TreeCollectorAspect { Home = new Vector3(10, 10, 10) }
+            new RandomMoveAspect()
         }
     };
 
     public static EntityType tree = new EntityType {
         Name = "Tree",
         Contents = new Attr { biomass = 10, biosludge = 10 },
-        Aspects = new EntityAspect[]{ new BeautifulCreature { Beauty = 2 } },
+        Aspects = new EntityAspect[]{
+            new BeautifulCreature { Beauty = 2 },
+            new SpawnAspect {
+                MaxPollution = 0.1f, MaxWater = 0.1f, Distance = 4f, Period = 2f
+            }
+        },
         MaxAge = 10
     };
     

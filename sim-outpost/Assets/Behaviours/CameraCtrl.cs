@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using static Util;
 
 public class CameraCtrl : MonoBehaviour {
     static int btnW = 100;
@@ -8,9 +9,9 @@ public class CameraCtrl : MonoBehaviour {
 
     Game Game => Game.Instance;
     Camera self;
+    float Height = 0;
 
 	void Start() {
-        var terrain = Game.Instance.Terrain;
         transform.Rotate(new Vector3(25, 20, 0));
         self = GetComponent<Camera>();
         self.farClipPlane = 200;
@@ -25,9 +26,9 @@ public class CameraCtrl : MonoBehaviour {
             Game.Instance.HoverPoint = hit.point;
         }
         self.orthographicSize = 5 * Game.Zoom;
-        transform.rotation = Quaternion.Euler(25/Game.Zoom, 20*Game.Zoom, 0);
-        var h = Game.Terrain.Height[Game.Pan];
-        transform.position = new Vector3(Game.Pan.x, h, Game.Pan.z);
+        transform.rotation = Quaternion.Euler(25*Game.Zoom, 20, 0);
+        Height = lerp(Height, Game.Terrain.Height[Game.Pan], 0.05f);
+        transform.position = new Vector3(Game.Pan.x, Height, Game.Pan.z);
     }
 
     void OnGUI() {
@@ -65,7 +66,7 @@ public class CameraCtrl : MonoBehaviour {
         var i = 0;
         var dh = btnH + padding;
         foreach (var type in Definitions.types) {
-            if (type.Predicate.CanBuild(Game.SelectedCell, Game)) {
+            if (type.Predicate.CanBuild(type, Game.SelectedCell, Game)) {
                 i++;
                 var didClick = GUI.Button(new Rect(10, 3*dh+dh*i, btnW, btnH), type.name);
                 if (didClick) {

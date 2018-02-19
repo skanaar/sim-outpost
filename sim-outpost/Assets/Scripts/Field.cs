@@ -45,13 +45,14 @@ public class Field {
     }
     public float this[Vector3 p] {
         get {
-            var cell = new Cell(p);
-            var u = p.x - cell.i;
-            var v = p.z - cell.j;
+            var cell = CellWithin(new Cell(p));
+            var u = (p.x - cell.i) % 1;
+            var v = (p.z - cell.j) % 1;
             var a = (1 - u)*this[cell.Add(0, 0)] + u*this[cell.Add(1, 0)];
             var b = (1 - u)*this[cell.Add(0, 1)] + u*this[cell.Add(1, 1)];
             return (1 - v) * a + v* b;
         }
+        set { this[CellWithin(new Cell(p))] = value; }
     }
     public Cell CellWithin(Cell cell) {
         return new Cell(clamp(1, Res-2, cell.i), clamp(1, Res-2, cell.j));
@@ -87,19 +88,19 @@ public class Field {
         }
     }
     public float Average(int i, int j, int w, int h) {
-        int xMax = min(Res, i+w);
-        int yMax = min(Res, j+h);
+        int xMax = min(Res, i+w+1);
+        int yMax = min(Res, j+h+1);
         float sum = 0;
         for (int x = max(0, i); x < xMax; x++) {
             for (int y = max(0, j); y < yMax; y++) {
                 sum += field[i + Res*y];
             }
         }
-        return sum/(w*h);
+        return sum/((w+1)*(h+1));
     }
     public float Minimum(int i, int j, int w, int h) {
-        int xMax = min(Res, i+w);
-        int yMax = min(Res, j+h);
+        int xMax = min(Res, i+w+1);
+        int yMax = min(Res, j+h+1);
         float value = Mathf.Infinity;
         for (int x = max(0, i); x < xMax; x++) {
             for (int y = max(0, j); y < yMax; y++) {
@@ -109,8 +110,8 @@ public class Field {
         return value;
     }
     public float Maximum(int i, int j, int w, int h) {
-        int xMax = min(Res, i+w);
-        int yMax = min(Res, j+h);
+        int xMax = min(Res, i+w+1);
+        int yMax = min(Res, j+h+1);
         float value = Mathf.NegativeInfinity;
         for (int x = max(0, i); x < xMax; x++) {
             for (int y = max(0, j); y < yMax; y++) {

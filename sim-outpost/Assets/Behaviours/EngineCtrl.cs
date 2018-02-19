@@ -82,9 +82,10 @@ public class EngineCtrl : MonoBehaviour {
         PruneDead(Game.Buildings);
         Game.Buildings.RemoveAll(e => e.IsDead);
 
-        foreach (var e in Game.Entities.Where(e => e.Type.Name != "Tree")) {
+        foreach (var e in Game.Entities) {
             if (e.GameObject == null) AttachGameObject(e);
             e.GameObject.transform.position = e.Pos;
+            e.GameObject.transform.rotation = Quaternion.LookRotation(e.Dir, Vector3.up);
         }
         PruneDead(Game.Entities);
         Game.Entities.RemoveAll(e => e.IsDead);

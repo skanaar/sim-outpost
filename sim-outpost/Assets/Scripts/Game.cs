@@ -17,9 +17,9 @@ public class Game {
     public float ShoreBeauty = 2f;
     public float BeautyDecay = 0.4f;
     public float WaterLowThreshold = 0.05f;
-    public float PollutionDecay = 0.002f;
+    public float PollutionDecay = 0.01f;
     public float PollutionDispersal = 0.001f;
-    public float PollutionPersistTreshold = 0.01f;
+    public float PollutionPersistTreshold = 0.1f;
     public float PollutionOverlayScale = 5f;
     public float BeautyOverlayScale = 0.2f;
     public float BeautyMax = 1f;
@@ -32,9 +32,11 @@ public class Game {
     public TerrainGrid Terrain;
     public List<Building> Buildings { get; private set; } = new List<Building>();
     public List<Entity> Entities { get; } = new List<Entity>();
+    public List<Entity> SpawnedEntities { get; } = new List<Entity>();
     public Field NeighbourDist;
     public Field Beauty;
     public Field Pollution;
+    public Field EntityDensity;
     public Attr Store { get; set; } = Definitions.StartingCommodities;
     public int Beds { get; set; } = 0;
     public int WorkforceDemand { get; set; } = 0;
@@ -53,8 +55,18 @@ public class Game {
         NeighbourDist = new Field(Res);
         Beauty = new Field(Res);
         Pollution = new Field(Res);
+        EntityDensity = new Field(Res);
         Entities.Add(new Entity {
             Pos = Terrain.GetCellFloor(Res/2, Res/2), Type=Definitions.treeCollector
+        });
+        Entities.Add(new Entity {
+            Pos = Terrain.GetCellFloor(Res/4, Res/4), Type=Definitions.tree
+        });
+        Entities.Add(new Entity {
+            Pos = Terrain.GetCellFloor(Res/2, Res/4), Type=Definitions.tree
+        });
+        Entities.Add(new Entity {
+            Pos = Terrain.GetCellFloor(Res/4, Res/2), Type=Definitions.tree
         });
         Pan = Terrain.GetCellFloor(Res / 2, Res / 2);
     }
@@ -67,6 +79,21 @@ public class Game {
         Buildings.Add(building);
         SelectedBuilding = building;
         CalcNeighbourDistances();
+    }
+
+    public void AddEntity(EntityType type, Vector3 pos) {
+        SpawnedEntities.Add(new Entity { Type = type, Pos = pos });
+    }
+
+    public void UpdateEntityDensity() {
+        for (int x = 0; x < Res; x++) {
+            for (int y = 0; y < Res; y++) {
+                EntityDensity[x, y] = 0;
+            }
+        }
+        foreach (var e in Entities) {
+            EntityDensity[e.Pos] += 1;
+        }
     }
 
     public void CalcNeighbourDistances() {
@@ -99,6 +126,7 @@ public class Game {
     }
 
     public void Update(float dt) {
+        bool anythingDied = false;
         Time += dt;
         Terrain.Update(dt);
         TerrainController.OnWaterChange();
@@ -107,15 +135,25 @@ public class Game {
         }
         foreach (var mob in Entities) {
             mob.Update(dt, this);
+            anythingDied = anythingDied || mob.IsDead;
+        }
+        if (anythingDied) {
+            UpdateEntityDensity();
         }
         if (ShouldTrigger(dt, UpdatePeriod)) UpdateEconomy(dt);
         if (ShouldTrigger(dt, UpdatePeriod*4)) UpdateEnvironment(dt);
         if (ShouldTrigger(dt, 10)) SaveGame();
+        Terrain.Water[25, 25] += dt;
     }
 
     public void UpdateEconomy(float dt) {
         foreach (var building in Buildings) {
             building.Update(dt, this);
+        }
+        if (SpawnedEntities.Count > 0) {
+            Entities.AddRange(SpawnedEntities);
+            SpawnedEntities.RemoveAll(e => true);
+            UpdateEntityDensity();
         }
         Beds = Buildings.Sum(e => e.type.beds);
         WorkforceDemand = Buildings.Sum(e => e.type.workforce);
@@ -125,7 +163,6 @@ public class Game {
         foreach (var building in Buildings) {
             building.Update(dt, this);
         }
-        GrowTrees(dt);
         EnvironmentalBeauty(dt);
         PollutionNaturalDecay(dt);
         Beauty.Smooth(dt);
@@ -155,15 +192,6 @@ public class Game {
                 var decay = Pollution[x,y]>PollutionPersistTreshold ? 0 : PollutionDecay;
                 Pollution[x, y] = max(0, Pollution[x, y] - dt*decay);
             }
-        }
-    }
-
-    public void GrowTrees(float dt) {
-        if (Entities.Count < 10 && UnityEngine.Random.value < dt) {
-            Entities.Add(new Entity{
-                Type = Definitions.tree,
-                Pos = Terrain.RandomPos()
-            });
         }
     }
 
@@ -227,7 +255,7 @@ public class SavedBuilding {
     public static SavedBuilding Create(Building e) => new SavedBuilding {
         Cell = e.Cell,
         Type = e.type.name,
-        BuildProgress = max(1, e.BuildProgress),
+        BuildProgress = clamp(0, 1, e.BuildProgress),
         IsEnabled = e.IsEnabled
     };
     public static Building Instantiate(SavedBuilding e) => new Building {
