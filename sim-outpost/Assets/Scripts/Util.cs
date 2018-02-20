@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public static class FloatExtensions {
@@ -11,6 +9,7 @@ public static class Util {
     public static int min(int a, int b) => Math.Min(a, b);
     public static int max(int a, int b) => Math.Max(a, b);
     public static float min(float a, float b) => Math.Min(a, b);
+    public static float min(float a, float b, float c, float d) => min(min(a,b),min(c,d));
     public static float max(float a, float b) => Math.Max(a, b);
     public static float sin(float x) => (float)Math.Sin(x);
     public static float cos(float x) => (float)Math.Cos(x);
@@ -65,5 +64,16 @@ public static class Util {
             ((hex & 0x000f) >> 0) / 16.0f
         );
     }
-    public static List<T> Seq<T>(params T[] items) => items.ToList();
+    public static bool ShouldTrigger(float time, float dt, float period) {
+        return (time > period) && (time % period > (time+dt) % period);
+    }
+}
+
+public struct Range {
+    public float Low;
+    public float High;
+    public Range(float low, float high) {
+        Low = low;
+        High = high;
+    }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEngine;
 using static Util;
@@ -11,27 +10,28 @@ public class Game {
     internal TerrainCtrl TerrainController;
 
     // constants
-    public int Res = 50;
-    public float BuildRange = 5;
-    public float MaxBuildingSlope = 0.25f;
-    public float ShoreBeauty = 2f;
-    public float BeautyDecay = 0.4f;
-    public float WaterLowThreshold = 0.05f;
-    public float PollutionDecay = 0.01f;
-    public float PollutionDispersal = 0.001f;
-    public float PollutionPersistTreshold = 0.1f;
-    public float PollutionOverlayScale = 5f;
-    public float BeautyOverlayScale = 0.2f;
-    public float BeautyMax = 1f;
+    public static float BuildRange = 5;
+    public static float MaxBuildingSlope = 0.25f;
+    public static float ShoreBeauty = 2f;
+    public static float BeautyDecay = 0.4f;
+    public static float WaterLowThreshold = 0.05f;
+    public static float PollutionDecay = 0.1f;
+    public static float PollutionDispersal = 0.001f;
+    public static float PollutionPersistTreshold = 1f;
+    public static float PollutionOverlayScale = 5f;
+    public static float BeautyOverlayScale = 0.2f;
+    public static float BeautyMax = 1f;
 
     // engine settings
+    public int Res = 50;
     public float UpdatePeriod = 0.1f;
 
     // game state
     public float Time = 0;
     public TerrainGrid Terrain;
-    public List<Building> Buildings { get; private set; } = new List<Building>();
-    public List<Entity> Entities { get; } = new List<Entity>();
+    public Well[] Wells = { new Well(2,2,1f), new Well(47,47,1f), new Well(27,27,0.2f) };
+    public List<Building> Buildings { get; set; } = new List<Building>();
+    public List<Entity> Entities { get; set; } = new List<Entity>();
     public List<Entity> SpawnedEntities { get; } = new List<Entity>();
     public Field NeighbourDist;
     public Field Beauty;
@@ -51,7 +51,7 @@ public class Game {
     public int DataOverlay { get; set; } = 0;
 
     public Game() {
-        Terrain = new TerrainGrid(Res);
+        Terrain = new TerrainGrid(Res, Wells);
         NeighbourDist = new Field(Res);
         Beauty = new Field(Res);
         Pollution = new Field(Res);
@@ -111,7 +111,7 @@ public class Game {
     }
 
     public bool ShouldTrigger(float dt, float period) {
-        return (Time > period) && (Time % period > (Time+dt) % period);
+        return Util.ShouldTrigger(Time, dt, period);
     }
 
     public void Stabilize(int steps) {
@@ -142,8 +142,7 @@ public class Game {
         }
         if (ShouldTrigger(dt, UpdatePeriod)) UpdateEconomy(dt);
         if (ShouldTrigger(dt, UpdatePeriod*4)) UpdateEnvironment(dt);
-        if (ShouldTrigger(dt, 10)) SaveGame();
-        Terrain.Water[25, 25] += dt;
+        if (ShouldTrigger(dt, 10)) Persister.SaveGame(this);
     }
 
     public void UpdateEconomy(float dt) {
@@ -199,68 +198,4 @@ public class Game {
         SelectedCell = new Cell(HoverPoint);
         SelectedBuilding = Buildings.FirstOrDefault(e => e.IsOccupying(SelectedCell));
     }
-
-    public void SaveGame() {
-        var path = Application.persistentDataPath + "/save.json";
-        Debug.Log($"Saving to ${path}");
-        var data = JsonUtility.ToJson(SavedGame.Create(this), prettyPrint: true);
-        File.WriteAllText(path, data);
-    }
-
-    public void LoadGame() {
-        var path = Application.persistentDataPath + "/save.json";
-        Debug.Log($"Loading from ${path}");
-        if (File.Exists(path)) {
-            var json = File.ReadAllText(path);
-            var state = JsonUtility.FromJson<SavedGame>(json);
-            Store = state.Store;
-            Population = state.Population;
-            Terrain = new TerrainGrid(state.Height, state.Water);
-            Beauty.field = state.Beauty.field;
-            Pollution.field = state.Pollution.field;
-            Buildings = state.Buildings.Select(SavedBuilding.Instantiate).ToList();
-            CalcNeighbourDistances();
-            UpdateEnvironment(0.01f);
-        }
-
-    }
-}
-
-[Serializable]
-public class SavedGame {
-    public Attr Store;
-    public int Population;
-    public Field Height;
-    public Field Water;
-    public Field Beauty;
-    public Field Pollution;
-    public SavedBuilding[] Buildings;
-    public static SavedGame Create(Game game) => new SavedGame {
-        Store = game.Store,
-        Population = game.Population,
-        Height = game.Terrain.Height,
-        Water = game.Terrain.Water,
-        Beauty = game.Beauty,
-        Pollution = game.Pollution,
-        Buildings = game.Buildings.Select(SavedBuilding.Create).ToArray()
-    };
-}
-
-[Serializable]
-public class SavedBuilding {
-    public Cell Cell;
-    public string Type;
-    public float BuildProgress;
-    public bool IsEnabled;
-    public static SavedBuilding Create(Building e) => new SavedBuilding {
-        Cell = e.Cell,
-        Type = e.type.name,
-        BuildProgress = clamp(0, 1, e.BuildProgress),
-        IsEnabled = e.IsEnabled
-    };
-    public static Building Instantiate(SavedBuilding e) => new Building {
-        Cell = e.Cell,
-        BuildProgress = e.BuildProgress,
-        type = Definitions.types.First(t => t.name == e.Type)
-    };
 }

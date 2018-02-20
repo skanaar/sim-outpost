@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 
 public class Definitions {
     
@@ -18,12 +17,17 @@ public class Definitions {
         Name = "Tree",
         Contents = new Attr { biomass = 10, biosludge = 10 },
         Aspects = new EntityAspect[]{
-            new BeautifulCreature { Beauty = 2 },
+            new BeautyEntityAspect { Beauty = 5 },
             new SpawnAspect {
-                MaxPollution = 0.1f, MaxWater = 0.1f, Distance = 4f, Period = 2f
+                MaxPollution = 0.1f, MaxWater = 0.1f, Distance = 4f, Period = 10f
             }
         },
-        MaxAge = 10
+        MaxAge = 60
+    };
+
+    public static List<EntityType> EntityTypes = new List<EntityType> {
+        treeCollector,
+        tree
     };
     
     public static List<BuildingType> types = new List<BuildingType> {

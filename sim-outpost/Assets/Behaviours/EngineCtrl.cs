@@ -23,7 +23,7 @@ public class EngineCtrl : MonoBehaviour {
         water.name = "water";
         water.AddComponent<WaterCtrl>();
         Game.Stabilize(100);
-        Game.LoadGame();
+        Persister.LoadGame(Game);
     }
 
     void AttachGameObject(Building building) {

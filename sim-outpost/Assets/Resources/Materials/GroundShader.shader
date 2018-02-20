@@ -36,12 +36,15 @@
         fixed4 _Color;
 
         void surf(Input IN, inout SurfaceOutput o) {
-            fixed4 ground = tex2D(_MainTex, IN.uv_MainTex);
+            float3 ground = tex2D(_MainTex, IN.uv_MainTex).rgb;
             fixed4 grid = tex2D(_GridTex, IN.uv_GridTex);
             float4 c = IN.vertexColor;
-            float gridness = 1 - clamp(5*(c.a-0.3)*(c.a-0.3), 0, 1);
-            float3 color = c.a*float3(0.5,0.5,0.5) + (1-c.a)*float3(0.2,1,0.1);
-            o.Albedo = color * (ground.rgb*(1-gridness) + grid.rgb*gridness);
+            float unbuildable = clamp(10*(c.a-0.3f)*(c.a-0.3f), 0, 1);
+            float gridness = 1 - unbuildable;
+            float3 topColor = c.a*float3(0.5,0.5,0.5) + (1-c.a)*float3(0.2,1,0.1);
+            float3 sand = float3(0.8,0.7,0.1);
+            float3 color = clamp(c.a*3,0,1)*topColor + (1-clamp(c.a*3,0,1))*sand;
+            o.Albedo = color*(ground*(1-gridness) + grid.rgb*gridness);
             o.Alpha = 1;
         }
         ENDCG

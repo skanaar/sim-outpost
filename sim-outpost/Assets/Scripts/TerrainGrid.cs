@@ -8,6 +8,7 @@ public class TerrainGrid {
     public Color[] Spectrum = {rgb(0x888),rgb(0x6F2),rgb(0x444),rgb(0xAAA),rgb(0xAAA)};
     public Field Height;
     public Field Water;
+    public Well[] Wells;
     public Slope Slope;
     public PeakProminence PeakProminence;
     public Field Change;
@@ -25,20 +26,22 @@ public class TerrainGrid {
         return height;
     }
 
-    public TerrainGrid(int res): this(
+    public TerrainGrid(int res, Well[] wells): this(
         GenerateTerrain(
             res,
             10,
             new float[]{ 0f, 0.25f, 0.3f, 0.8f, 1 },
             new Noise{ scale = 12f, octaves = 4 }
         ),
-        new Field(res)
+        new Field(res),
+        wells
     ) { }
 
-    public TerrainGrid(Field height, Field water) {
+    public TerrainGrid(Field height, Field water, Well[] wells) {
         Res = height.Res;
         Height = height;
         Water = water;
+        Wells = wells;
         Change = new Field(Res);
         XFlow = new Field(Res);
         YFlow = new Field(Res);
@@ -83,6 +86,9 @@ public class TerrainGrid {
                 Water[x, y] += step * Change[x, y] + step * 0.0001f;
             }
         }
+        foreach (var well in Wells) {
+            Water[well.Cell] = well.Level;
+        }
     }
 
     public void UpdateErosion(float dt) {
@@ -105,5 +111,14 @@ public class TerrainGrid {
     internal Vector3 RandomPos() {
         var p = new Vector3(Random.Range(1, Res-1), 0, Random.Range(1, Res-1));
         return new Vector3(p.x, Height[p], p.z);
+    }
+}
+
+public class Well {
+    public Cell Cell;
+    public float Level;
+    public Well(int i, int j, float level) {
+        Cell = new Cell(i, j);
+        Level = level;
     }
 }

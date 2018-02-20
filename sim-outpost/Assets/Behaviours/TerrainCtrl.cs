@@ -34,10 +34,9 @@ public class TerrainCtrl : MonoBehaviour {
     }
 
     float getZone(int i, int j) {
-        var waterMin = Game.Instance.WaterLowThreshold;
-        if (Terrain.Water[i, j] > waterMin) return 0;
+        if (Terrain.Water[i, j] > Game.WaterLowThreshold) return 0;
         if (Terrain.PeakProminence[new Cell(i, j)] > 0.5) return 1;
-        if (Terrain.Slope[i, j] <= Game.Instance.MaxBuildingSlope) return 0.3f;
+        if (Terrain.Slope[i, j] <= Game.MaxBuildingSlope) return 0.3f;
         return 0.6f;
     }
 

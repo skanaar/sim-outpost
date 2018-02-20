@@ -15,7 +15,6 @@ public class WaterCtrl : MonoBehaviour {
     }
 
     Mesh BuildMesh(int res) {
-        var minima = Game.Instance.WaterLowThreshold;
         var vertices = new Vector3[res * res];
         var uv = new Vector2[res * res];
         var colors = new Color[res * res];
@@ -23,9 +22,22 @@ public class WaterCtrl : MonoBehaviour {
             for (int j = 0; j < res; j++) {
                 var w = Terrain.Water[i, j];
                 var h = Terrain.Height[i, j];
-                vertices[i + res * j] = new Vector3(i, w+h-minima, j);
+                vertices[i + res * j] = new Vector3(i, w+h, j);
                 uv[i + res * j] = new Vector2(i/(float)res, j/(float)res);
-                colors[i + res * j] = new Color(1,1,1,Mathf.Min(1, 1.25f*w));
+                colors[i + res * j] = new Color(1, 1, 1, Mathf.Min(1, 1.25f*w));
+            }
+        }
+        for (int i = 1; i < res-1; i++) {
+            for (int j = 1; j < res-1; j++) {
+                var w = Terrain.Water[i, j];
+                var h = Terrain.Height[i, j];
+                if (Terrain.Water[i, j] < Game.WaterLowThreshold) {
+                    var a = Terrain.Height[i+1, j]+Terrain.Water[i+1, j];
+                    var b = Terrain.Height[i-1,j]+Terrain.Water[i-1, j];
+                    var c = Terrain.Height[i, j+1]+Terrain.Water[i, j+1];
+                    var d = Terrain.Height[i, j-1]+Terrain.Water[i, j-1];
+                    vertices[i + res * j] = new Vector3(i, min(a,b,c,d), j);
+                }
             }
         }
         var triangles = new int[2 * 3 * sq(res - 1)];

@@ -120,6 +120,20 @@ public class Field {
         }
         return value;
     }
+    public Range Range(int i, int j, int w, int h) {
+        int xMax = min(Res, i+w+1);
+        int yMax = min(Res, j+h+1);
+        float low = Mathf.Infinity;
+        float high = Mathf.NegativeInfinity;
+        for (int x = max(0, i); x < xMax; x++) {
+            for (int y = max(0, j); y < yMax; y++) {
+                float val = field[x + Res*y];
+                low = min(low, val);
+                high = max(high, val);
+            }
+        }
+        return new Range(low, high);
+    }
 }
 
 public class Slope {

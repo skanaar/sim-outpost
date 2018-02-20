@@ -26,7 +26,9 @@ public class CameraCtrl : MonoBehaviour {
             Game.Instance.HoverPoint = hit.point;
         }
         self.orthographicSize = 5 * Game.Zoom;
-        transform.rotation = Quaternion.Euler(25*Game.Zoom, 20, 0);
+        float rotX = clamp(0, 90, 25*Game.Zoom);
+        float rotY = clamp(0, 45, 30/Game.Zoom-10);
+        transform.rotation = Quaternion.Euler(rotX, rotY, 0);
         Height = lerp(Height, Game.Terrain.Height[Game.Pan], 0.05f);
         transform.position = new Vector3(Game.Pan.x, Height, Game.Pan.z);
     }

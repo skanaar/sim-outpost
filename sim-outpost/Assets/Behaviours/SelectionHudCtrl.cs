@@ -23,8 +23,8 @@ public class SelectionHudCtrl : MonoBehaviour {
     string CellDesc(Cell cell) {
         return string.Join("\n", new string[]{
             "height " + (int)(10 * Game.Terrain.Height[cell]),
-            "beauty " + (int)(10 * Game.Beauty[cell]),
-            "pollute " + (int)(10 * Game.Pollution[cell]),
+            "beauty " + (int)(100 * Game.Beauty[cell]),
+            "pollute " + (int)(100 * Game.Pollution[cell]),
             "support " + (int)Game.NeighbourDist[cell],
             "peak " + new PeakProminence(Game.Terrain.Height)[cell].ToString("0.##")
         });
