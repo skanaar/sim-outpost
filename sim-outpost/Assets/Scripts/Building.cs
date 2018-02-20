@@ -44,6 +44,7 @@ public class BuildingType {
     public int w = 1;
     public int h = 1;
     public Attr turnover;
+    public Attr storage;
     public Attr cost;
     public int beds;
     public int workforce;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using static Util;
 
 [Serializable]
 public struct Attr {
@@ -57,6 +58,22 @@ public struct Attr {
         return string.Join("\n", lines
                            .Where(e => e.Value.NonZero())
                            .Select(e => e.Name + " " + e.Value.ToString(format)));
+    }
+
+    public Attr ClampToPositive() {
+        return new Attr {
+            water = max(0, water),
+            credits = max(0, credits),
+            ore = max(0, ore),
+            metal = max(0, metal),
+            oxygen = max(0, oxygen),
+            fuel = max(0, fuel),
+            biosludge = max(0, biosludge),
+            biomass = max(0, biomass),
+            chems = max(0, chems),
+            food = max(0, food),
+            energy = max(0, energy),
+        };
     }
 
     public static bool operator <=(Attr a, Attr b) {

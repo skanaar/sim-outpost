@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using static Util;
 
 public class CameraCtrl : MonoBehaviour {
@@ -10,6 +11,7 @@ public class CameraCtrl : MonoBehaviour {
     Game Game => Game.Instance;
     Camera self;
     float Height = 0;
+    int CursorSize = 1;
 
 	void Start() {
         transform.Rotate(new Vector3(25, 20, 0));
@@ -65,9 +67,18 @@ public class CameraCtrl : MonoBehaviour {
                 Game.SelectedBuilding.IsEnabled = !Game.SelectedBuilding.IsEnabled;
             }
         }
+        if (GUI.Button(new Rect(10, 40+btnH*3, btnW/3, btnH), "1x")) {
+            CursorSize = 1;
+        }
+        if (GUI.Button(new Rect(10+btnW/3, 40+btnH*3, btnW/3, btnH), "2x")) {
+            CursorSize = 2;
+        }
+        if (GUI.Button(new Rect(10+2*btnW/3, 40+btnH*3, btnW/3, btnH), "3x")) {
+            CursorSize = 3;
+        }
         var i = 0;
         var dh = btnH + padding;
-        foreach (var type in Definitions.types) {
+        foreach (var type in Definitions.types.Where(t => t.w == CursorSize)) {
             if (type.Predicate.CanBuild(type, Game.SelectedCell, Game)) {
                 i++;
                 var didClick = GUI.Button(new Rect(10, 3*dh+dh*i, btnW, btnH), type.name);

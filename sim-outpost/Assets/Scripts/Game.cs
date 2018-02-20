@@ -21,6 +21,7 @@ public class Game {
     public static float PollutionOverlayScale = 5f;
     public static float BeautyOverlayScale = 0.2f;
     public static float BeautyMax = 1f;
+    public static float StorageSurplusDecay = 0.05f;
 
     // engine settings
     public int Res = 50;
@@ -38,6 +39,7 @@ public class Game {
     public Field Pollution;
     public Field EntityDensity;
     public Attr Store { get; set; } = Definitions.StartingCommodities;
+    public Attr StoreCapacity = new Attr();
     public int Beds { get; set; } = 0;
     public int WorkforceDemand { get; set; } = 0;
     public int Population { get; set; } = 10;
@@ -146,8 +148,10 @@ public class Game {
     }
 
     public void UpdateEconomy(float dt) {
+        StoreCapacity = new Attr();
         foreach (var building in Buildings) {
             building.Update(dt, this);
+            StoreCapacity += building.type.storage;
         }
         if (SpawnedEntities.Count > 0) {
             Entities.AddRange(SpawnedEntities);
@@ -156,6 +160,7 @@ public class Game {
         }
         Beds = Buildings.Sum(e => e.type.beds);
         WorkforceDemand = Buildings.Sum(e => e.type.workforce);
+        Store += -dt * StorageSurplusDecay * (Store + -1*StoreCapacity).ClampToPositive();
     }
 
     public void UpdateEnvironment(float dt) {
