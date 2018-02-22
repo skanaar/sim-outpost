@@ -18,7 +18,7 @@ public class Definitions {
                 MaxPollution = 0.1f, MaxWater = 0.1f, Distance = 4f, Period = 10f
             }
         },
-        MaxAge = 60
+        MaxAge = 40
     };
 
     public static List<EntityType> EntityTypes = new List<EntityType> {

@@ -11,7 +11,21 @@ public class TerrainCtrl : MonoBehaviour {
 
     void Start() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
-        GetComponent<Renderer>().material = Materials.Ground;
+        var material = Materials.Ground;
+        material = Materials.Ground;
+        var spectrum = new Color[] {
+            rgb(0x421), rgb(0x176), rgb(0x743), rgb(0xc65),
+            rgb(0xF86), rgb(0xC65), rgb(0x743), rgb(0xC65),
+            rgb(0x421), rgb(0xCA5), rgb(0x9C2), rgb(0xCA5),
+            rgb(0x421), rgb(0xD98), rgb(0xF86), rgb(0x932),
+            rgb(0xD98), rgb(0xD98), rgb(0xD98), rgb(0x537)
+        };
+        var tex = GenerateTexture(512, Game.Terrain.Height, spectrum);
+        material.SetTexture("_MainTex", tex);
+        material.SetTextureScale("_MainTex", new Vector2(1, 1));
+        material.SetTextureOffset("_MainTex", new Vector2(0, 0));
+        material.SetTextureScale("_GridTex", Game.Terrain.Res * new Vector2(1, 1));
+        GetComponent<Renderer>().material = material;
         gameObject.AddComponent<MeshCollider>();
         gameObject.layer = TerrainLayer;
     }
@@ -120,5 +134,19 @@ public class TerrainCtrl : MonoBehaviour {
                 default: rendr.material = Materials.Ground; break;
             }
         }
-	}
+    }
+
+    Texture2D GenerateTexture(int res, Field height, Color[] spectrum) {
+        var texture = new Texture2D(res, res, TextureFormat.ARGB32, false);
+        var range = height.Range(0, 0, height.Res, height.Res);
+        var span = range.High - range.Low;
+        for (int i = 0; i < res; i++) {
+            for (int j = 0; j < res; j++) {
+                var p = (height.Res / (float)res) * new Vector3(i, 0, j);
+                texture.SetPixel(i, j, lerp(spectrum, (height[p] - range.Low)/span));
+            }
+        }
+        texture.Apply();
+        return texture;
+    }
 }

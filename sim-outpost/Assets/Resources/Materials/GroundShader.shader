@@ -1,6 +1,7 @@
 ﻿Shader "Skanaar/GroundShader" {
     Properties {
-        _MainTex ("Ground", 2D) = "white" {}
+        _MainTex ("Texture", 2D) = "white" {}
+        _DetailTex ("Detail", 2D) = "white" {}
         _GridTex ("Grid", 2D) = "white" {}
     }
     SubShader {
@@ -24,11 +25,12 @@
         void vert(inout appdata_full v, out Input o){
             UNITY_INITIALIZE_OUTPUT(Input,o);
             o.uv_MainTex = v.texcoord.xy;
-            o.uv_GridTex = v.texcoord1.xy;
+            o.uv_GridTex = v.texcoord2.xy;
             o.vertexColor = v.color;
         }
 
         sampler2D _MainTex;
+        sampler2D _DetailTex;
         sampler2D _GridTex;
 
         half _Glossiness;
@@ -37,14 +39,12 @@
 
         void surf(Input IN, inout SurfaceOutput o) {
             float3 ground = tex2D(_MainTex, IN.uv_MainTex).rgb;
+            float3 detail = tex2D(_DetailTex, 0.25*IN.uv_GridTex).rgb;
             fixed4 grid = tex2D(_GridTex, IN.uv_GridTex);
             float4 c = IN.vertexColor;
             float unbuildable = clamp(10*(c.a-0.3f)*(c.a-0.3f), 0, 1);
             float gridness = 1 - unbuildable;
-            float3 topColor = c.a*float3(0.5,0.5,0.5) + (1-c.a)*float3(0.2,1,0.1);
-            float3 sand = float3(0.8,0.7,0.1);
-            float3 color = clamp(c.a*3,0,1)*topColor + (1-clamp(c.a*3,0,1))*sand;
-            o.Albedo = color*(ground*(1-gridness) + grid.rgb*gridness);
+            o.Albedo = detail*ground*(float3(1,1,1)*(1-gridness) + grid.rgb*gridness);
             o.Alpha = 1;
         }
         ENDCG

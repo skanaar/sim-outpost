@@ -30,7 +30,7 @@ public class Game {
     // game state
     public float Time = 0;
     public TerrainGrid Terrain;
-    public Well[] Wells = { new Well(2,2,1f), new Well(47,47,2f), new Well(27,27,0.4f) };
+    public Well[] Wells = { new Well(2,2,0f), new Well(47,47,0f), new Well(27,27,0f) };
     public List<Building> Buildings { get; set; } = new List<Building>();
     public List<Entity> Entities { get; set; } = new List<Entity>();
     public List<Entity> SpawnedEntities { get; } = new List<Entity>();
