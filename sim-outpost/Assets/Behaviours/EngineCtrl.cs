@@ -13,6 +13,7 @@ public class EngineCtrl : MonoBehaviour {
     void Start() {
         Selection = GameObject.CreatePrimitive(PrimitiveType.Quad);
         Selection.name = "selection";
+        Selection.transform.position = new Vector3(0, 0.02f, 0);
         Selection.AddComponent<SelectionCtrl>();
 
         Terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);

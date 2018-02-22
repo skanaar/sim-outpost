@@ -4,6 +4,7 @@ using static Util;
 
 [Serializable]
 public struct Cell {
+    public static Cell Zero = new Cell(0, 0);
     public int i;
     public int j;
     public Cell(Vector3 vec): this((int)(vec.x), (int)(vec.z)) {}

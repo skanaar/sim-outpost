@@ -1,10 +1,6 @@
 ﻿using System.Collections.Generic;
 
 public class Definitions {
-    
-    public static Attr StartingCommodities = new Attr {
-        metal = 100, biosludge = 20, fuel = 100, energy = 1000, water = 100
-    };
 
     public static EntityType treeCollector = new EntityType {
         Name = "Collector",
@@ -29,8 +25,16 @@ public class Definitions {
         treeCollector,
         tree
     };
-    
+
     public static List<BuildingType> types = new List<BuildingType> {
+        new BuildingType("Hub") {
+            turnover = new Attr(),
+            cost = -1 * new Attr {
+                metal = 100, biosludge = 20, fuel = 100, energy = 1000, water = 100
+            },
+            storage = 100 * Attr.Identity + new Attr{ energy = 900 },
+            buildTime = 0.1f
+        },
         new BuildingType("Relay", new TurnoverAspect(), new BeautyAspect(1)) {
             turnover = new Attr(),
             cost = new Attr { metal = 5 },

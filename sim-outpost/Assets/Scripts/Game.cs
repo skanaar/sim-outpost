@@ -10,7 +10,7 @@ public class Game {
     internal TerrainCtrl TerrainController;
 
     // constants
-    public static float BuildRange = 5;
+    public static float BuildRange = 4f;
     public static float MaxBuildingSlope = 0.25f;
     public static float ShoreBeauty = 2f;
     public static float BeautyDecay = 0.4f;
@@ -30,7 +30,7 @@ public class Game {
     // game state
     public float Time = 0;
     public TerrainGrid Terrain;
-    public Well[] Wells = { new Well(2,2,1f), new Well(47,47,1f), new Well(27,27,0.2f) };
+    public Well[] Wells = { new Well(2,2,1f), new Well(47,47,2f), new Well(27,27,0.4f) };
     public List<Building> Buildings { get; set; } = new List<Building>();
     public List<Entity> Entities { get; set; } = new List<Entity>();
     public List<Entity> SpawnedEntities { get; } = new List<Entity>();
@@ -38,7 +38,7 @@ public class Game {
     public Field Beauty;
     public Field Pollution;
     public Field EntityDensity;
-    public Attr Store { get; set; } = Definitions.StartingCommodities;
+    public Attr Store { get; set; } = Attr.Zero;
     public Attr StoreCapacity = new Attr();
     public int Beds { get; set; } = 0;
     public int WorkforceDemand { get; set; } = 0;
@@ -49,6 +49,7 @@ public class Game {
     public Vector3 Pan = Vector3.zero;
     public Vector3 HoverPoint { get; set; } = new Vector3(0, 0, 0);
     public Cell SelectedCell { get; set; } = new Cell(0, 0);
+    public int CursorSize { get; set; } = 1;
     public Building SelectedBuilding { get; set; } = null;
     public int DataOverlay { get; set; } = 0;
 
@@ -105,7 +106,8 @@ public class Game {
                 NeighbourDist[i, j] = defaultDist;
                 foreach (var e in Buildings) {
                     var x = NeighbourDist[i, j];
-                    var dist = (e.Cell.ToVector - new Vector3(i, 0, j)).magnitude;
+                    var mid = new Vector3(e.type.w/2f, 0, e.type.h/2f);
+                    var dist = (e.Cell.ToVector - new Vector3(i, 0, j) + mid).magnitude;
                     NeighbourDist[i, j] = Math.Min(x, dist);
                 }
             }

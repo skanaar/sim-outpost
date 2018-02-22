@@ -5,6 +5,19 @@ using static Util;
 [Serializable]
 public struct Attr {
     public static Attr Zero = new Attr();
+    public static Attr Identity = new Attr {
+        water = 1,
+        credits = 1,
+        ore = 1,
+        metal = 1,
+        oxygen = 1,
+        fuel = 1,
+        biosludge = 1,
+        biomass = 1,
+        chems = 1,
+        food = 1,
+        energy = 1
+    };
 
     public float water;
     public float credits;

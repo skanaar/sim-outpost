@@ -36,7 +36,8 @@ public class TerrainCtrl : MonoBehaviour {
     float getZone(int i, int j) {
         if (Terrain.Water[i, j] > Game.WaterLowThreshold) return 0;
         if (Terrain.PeakProminence[new Cell(i, j)] > 0.5) return 1;
-        if (Terrain.Slope[i, j] <= Game.MaxBuildingSlope) return 0.3f;
+        var inRange = Game.NeighbourDist[i, j]<Game.BuildRange;
+        if (Terrain.Slope[i, j] <= Game.MaxBuildingSlope && inRange) return 0.3f;
         return 0.6f;
     }
 
@@ -51,22 +52,34 @@ public class TerrainCtrl : MonoBehaviour {
     }
 
     Mesh BuildMesh(int res) {
-        var vertices = new Vector3[res * res];
-        var uv = new Vector2[res * res];
+        var msh = BuildTerrainMesh(Terrain.Height, Cell.Zero, res);
         var colors = new Color[res * res];
         for (int i = 0; i < res; i++) {
             for (int j = 0; j < res; j++) {
-                var h = Terrain.Height[i, j];
-                vertices[i + res * j] = new Vector3(i, h, j);
-                uv[i + res * j] = new Vector2(i/(float)res, j/(float)res);
                 colors[i + res * j] = groundColor(i, j);
+            }
+        }
+        msh.colors = colors;
+        return msh;
+    }
+
+    public static Mesh BuildTerrainMesh(Field height, Cell offset, int res) {
+        var vertices = new Vector3[res * res];
+        var uv = new Vector2[res * res];
+        for (int i = 0; i < res; i++) {
+            for (int j = 0; j < res; j++) {
+                var x = offset.i + i;
+                var y = offset.j + j;
+                var h = height[x, y];
+                vertices[i + res * j] = new Vector3(x, h, y);
+                uv[i+res*j] = new Vector2(x/(float)res, y/(float)res);
             }
         }
         var triangles = new int[2 * 3 * sq(res - 1)];
         int index = 0;
         for (int i = 0; i < res - 1; i++) {
             for (int j = 0; j < res - 1; j++) {
-                if ((i + j) % 2 == 0) {
+                if ((offset.i + i + offset.j + j) % 2 == 0) {
                     triangles[index + 0] = (i + 1) + res * (j + 0);
                     triangles[index + 1] = (i + 0) + res * (j + 0);
                     triangles[index + 2] = (i + 0) + res * (j + 1);
@@ -89,7 +102,6 @@ public class TerrainCtrl : MonoBehaviour {
         mesh.vertices = vertices;
         mesh.uv = uv;
         mesh.triangles = triangles;
-        mesh.colors = colors;
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();

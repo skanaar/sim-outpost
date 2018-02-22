@@ -11,7 +11,6 @@ public class CameraCtrl : MonoBehaviour {
     Game Game => Game.Instance;
     Camera self;
     float Height = 0;
-    int CursorSize = 1;
 
 	void Start() {
         transform.Rotate(new Vector3(25, 20, 0));
@@ -31,7 +30,7 @@ public class CameraCtrl : MonoBehaviour {
         float rotX = clamp(0, 90, 25*Game.Zoom);
         float rotY = clamp(0, 45, 30/Game.Zoom-10);
         transform.rotation = Quaternion.Euler(rotX, rotY, 0);
-        Height = lerp(Height, Game.Terrain.Height[Game.Pan], 0.05f);
+        Height = lerp(Height, Game.Terrain.Height[Game.Pan], 0.07f);
         transform.position = new Vector3(Game.Pan.x, Height, Game.Pan.z);
     }
 
@@ -58,9 +57,6 @@ public class CameraCtrl : MonoBehaviour {
             if (GUI.Button(new Rect(10, 30+btnH*2, btnW, btnH), "Lower")) {
                 terraform.AdjustTerrain(Game.SelectedCell, -0.25f);
             }
-            if (Game.NeighbourDist[Game.SelectedCell] > Game.BuildRange) {
-                return;
-            }
         }
         else {
             if (GUI.Button(new Rect(10, 10, btnW, btnH), "Toggle")) {
@@ -68,23 +64,26 @@ public class CameraCtrl : MonoBehaviour {
             }
         }
         if (GUI.Button(new Rect(10, 40+btnH*3, btnW/3, btnH), "1x")) {
-            CursorSize = 1;
+            Game.CursorSize = 1;
         }
         if (GUI.Button(new Rect(10+btnW/3, 40+btnH*3, btnW/3, btnH), "2x")) {
-            CursorSize = 2;
+            Game.CursorSize = 2;
         }
         if (GUI.Button(new Rect(10+2*btnW/3, 40+btnH*3, btnW/3, btnH), "3x")) {
-            CursorSize = 3;
+            Game.CursorSize = 3;
         }
-        var i = 0;
-        var dh = btnH + padding;
-        foreach (var type in Definitions.types.Where(t => t.w == CursorSize)) {
-            if (type.Predicate.CanBuild(type, Game.SelectedCell, Game)) {
-                i++;
-                var didClick = GUI.Button(new Rect(10, 3*dh+dh*i, btnW, btnH), type.name);
-                if (didClick) {
-                    InputFilter.AbortTap();
-                    Game.AddBuilding(type, Game.SelectedCell);
+        if (Game.NeighbourDist[Game.SelectedCell] <= Game.BuildRange) {
+            var i = 0;
+            var dh = btnH + padding;
+            foreach (var type in Definitions.types.Where(t => t.w == Game.CursorSize)) {
+                if (type.Predicate.CanBuild(type, Game.SelectedCell, Game)) {
+                    i++;
+                    var y = 3*dh+dh*i;
+                    var didClick = GUI.Button(new Rect(10, y, btnW, btnH), type.name);
+                    if (didClick) {
+                        InputFilter.AbortTap();
+                        Game.AddBuilding(type, Game.SelectedCell);
+                    }
                 }
             }
         }
