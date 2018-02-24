@@ -49,13 +49,13 @@ public class CameraCtrl : MonoBehaviour {
         if (Game.SelectedBuilding == null) {
             var terraform = new Terraform { Game = Game };
             if (GUI.Button(new Rect(10, 10, btnW, btnH), "Level")) {
-                terraform.LevelTerrain(Game.SelectedCell);
+                terraform.LevelTerrain(Game.SelectedCell, Game.CursorSize);
             }
             if (GUI.Button(new Rect(10, 20+btnH, btnW, btnH), "Raise")) {
-                terraform.AdjustTerrain(Game.SelectedCell, 0.25f);
+                terraform.AdjustTerrain(Game.SelectedCell, Game.CursorSize, 0.25f);
             }
             if (GUI.Button(new Rect(10, 30+btnH*2, btnW, btnH), "Lower")) {
-                terraform.AdjustTerrain(Game.SelectedCell, -0.25f);
+                terraform.AdjustTerrain(Game.SelectedCell, Game.CursorSize, -0.25f);
             }
         }
         else {

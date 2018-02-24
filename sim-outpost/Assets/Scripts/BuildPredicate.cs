@@ -16,9 +16,18 @@ public abstract class BuildPredicate {
     public class FlatGround : BuildPredicate {
         public override bool CanBuild(BuildingType type, Cell cell, Game game) {
             var empty = IsEmpty(type, cell, game);
-            var flat = game.Terrain.Slope[cell] < Game.MaxBuildingSlope;
-            var water = game.Terrain.Water.Maximum(cell.i, cell.j, type.w, type.h);
-            return empty && flat && (water < Game.WaterLowThreshold);
+            if (!empty) return false;
+            for (int i = 0; i <= type.w; i++) {
+                for (int j = 0; j <= type.h; j++) {
+                    Cell c = game.Terrain.Height.CellWithin(cell.Add(i, j));
+                    var flat = game.Terrain.Slope[c] < Game.MaxBuildingSlope;
+                    var water = game.Terrain.Water.Maximum(cell.i,cell.j,type.w,type.h);
+                    if (water > Game.WaterLowThreshold || !flat) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     }
 

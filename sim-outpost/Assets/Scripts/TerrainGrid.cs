@@ -20,10 +20,15 @@ public class TerrainGrid {
         for (int x = 0; x < res; x++) {
             for (int y = 0; y < res; y++) {
                 float slope = 20 * (1 - Mathf.Cos(sqrt(sq(x-res/2) + sq(y-res/2))/res));
-                height[x, y] = maxHeight * lerp(curve, noise[x, y]) - slope;
+                height[x, y] = Posterize(maxHeight * lerp(curve, noise[x, y]) - slope);
             }
         }
         return height;
+    }
+
+    static float Posterize(float v) {
+        var steps = 3f;
+        return lerp(v, Mathf.Round(v * steps) / steps, 0.8f);
     }
 
     public TerrainGrid(int res, Well[] wells): this(

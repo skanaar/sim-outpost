@@ -5,6 +5,7 @@ public class TerrainCtrl : MonoBehaviour {
 
     public static int TerrainLayer = 10;
 
+    public int Hash = 0;
     Game Game => Game.Instance;
     TerrainGrid Terrain => Game.Instance.Terrain;
     int lastDataOverlay = 0;
@@ -31,6 +32,7 @@ public class TerrainCtrl : MonoBehaviour {
     }
 
     public void OnTerrainChange() {
+        Hash++;
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
         Destroy(GetComponent<MeshCollider>());
         gameObject.AddComponent<MeshCollider>();

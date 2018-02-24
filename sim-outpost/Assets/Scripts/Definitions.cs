@@ -148,6 +148,15 @@ public class Definitions {
             cost = new Attr { energy = 200, metal = 10 },
             workforce = 4,
             buildTime = 8
-        }
+        },
+
+        // Size 3x
+        new BuildingType("Cosmodrome", new PollutingAspect(1), new MigrationAspect()) {
+            turnover = new Attr(),
+            w = 3,
+            h = 3,
+            cost = new Attr { metal = 30 },
+            buildTime = 3
+        },
     };
 }

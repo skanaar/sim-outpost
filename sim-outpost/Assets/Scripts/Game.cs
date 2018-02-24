@@ -108,7 +108,7 @@ public class Game {
                     var x = NeighbourDist[i, j];
                     var mid = new Vector3(e.type.w/2f, 0, e.type.h/2f);
                     var dist = (e.Cell.ToVector - new Vector3(i, 0, j) + mid).magnitude;
-                    NeighbourDist[i, j] = Math.Min(x, dist);
+                    NeighbourDist[i, j] = Math.Min(x, dist + e.type.w/2);
                 }
             }
         }
