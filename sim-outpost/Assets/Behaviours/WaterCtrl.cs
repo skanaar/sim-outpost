@@ -1,10 +1,12 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using static UnityEngine.Rendering.ShadowCastingMode;
 using static Util;
 
 public class WaterCtrl : MonoBehaviour {
 
     TerrainGrid Terrain => Game.Instance.Terrain;
+    Game Game => Game.Instance;
 
     void Start() {
         GetComponent<MeshFilter>().mesh = BuildMesh(Terrain.Res);
@@ -40,33 +42,32 @@ public class WaterCtrl : MonoBehaviour {
                 }
             }
         }
-        var triangles = new int[2 * 3 * sq(res - 1)];
-        int index = 0;
+        var triangles = new List<int>();
         for (int i = 0; i < res - 1; i++) {
             for (int j = 0; j < res - 1; j++) {
+                if (Game.NeighbourDist[i, j] > Game.VisionRange) { continue; }
                 if ((i + j) % 2 == 0) {
-                    triangles[index + 0] = (i + 1) + res * (j + 0);
-                    triangles[index + 1] = (i + 0) + res * (j + 0);
-                    triangles[index + 2] = (i + 0) + res * (j + 1);
-                    triangles[index + 3] = (i + 1) + res * (j + 1);
-                    triangles[index + 4] = (i + 1) + res * (j + 0);
-                    triangles[index + 5] = (i + 0) + res * (j + 1);
+                    triangles.Add((i + 1) + res * (j + 0));
+                    triangles.Add((i + 0) + res * (j + 0));
+                    triangles.Add((i + 0) + res * (j + 1));
+                    triangles.Add((i + 1) + res * (j + 1));
+                    triangles.Add((i + 1) + res * (j + 0));
+                    triangles.Add((i + 0) + res * (j + 1));
                 } else {
-                    triangles[index + 0] = (i + 1) + res * (j + 0);
-                    triangles[index + 1] = (i + 0) + res * (j + 0);
-                    triangles[index + 2] = (i + 1) + res * (j + 1);
-                    triangles[index + 3] = (i + 1) + res * (j + 1);
-                    triangles[index + 4] = (i + 0) + res * (j + 0);
-                    triangles[index + 5] = (i + 0) + res * (j + 1);
+                    triangles.Add((i + 1) + res * (j + 0));
+                    triangles.Add((i + 0) + res * (j + 0));
+                    triangles.Add((i + 1) + res * (j + 1));
+                    triangles.Add((i + 1) + res * (j + 1));
+                    triangles.Add((i + 0) + res * (j + 0));
+                    triangles.Add((i + 0) + res * (j + 1));
                 }
-                index += 6;
             }
         }
         var mesh = new Mesh();
         mesh.vertices = vertices;
         mesh.uv = uv;
         mesh.colors = colors;
-        mesh.triangles = triangles;
+        mesh.triangles = triangles.ToArray();
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();

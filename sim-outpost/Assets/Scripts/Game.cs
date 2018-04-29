@@ -10,6 +10,7 @@ public class Game {
     internal TerrainCtrl TerrainController;
 
     // constants
+    public static float VisionRange = 8f;
     public static float BuildRange = 4f;
     public static float MaxBuildingSlope = 0.25f;
     public static float ShoreBeauty = 2f;
@@ -54,11 +55,13 @@ public class Game {
     public int DataOverlay { get; set; } = 0;
 
     public Game() {
-        Terrain = new TerrainGrid(Res, Wells);
-        NeighbourDist = new Field(Res);
+        var terrain = Generator.GenerateTerrain(Res);
+        var water = new Field(Res);
+        Terrain = new TerrainGrid(terrain, water, Wells);
+        NeighbourDist = new Field(Res, buffered: false);
         Beauty = new Field(Res);
         Pollution = new Field(Res);
-        EntityDensity = new Field(Res);
+        EntityDensity = new Field(Res, buffered: false);
         Entities.Add(new Entity {
             Pos = Terrain.GetCellFloor(Res/2, Res/2), Type=Definitions.treeCollector
         });
@@ -82,6 +85,7 @@ public class Game {
         Buildings.Add(building);
         SelectedBuilding = building;
         CalcNeighbourDistances();
+        TerrainController?.OnTerrainChange();
     }
 
     public void AddEntity(EntityType type, Vector3 pos) {
@@ -112,6 +116,7 @@ public class Game {
                 }
             }
         }
+        NeighbourDist.ApplyChanges();
     }
 
     public bool ShouldTrigger(float dt, float period) {
@@ -173,6 +178,8 @@ public class Game {
         PollutionNaturalDecay(dt);
         Beauty.Smooth(dt);
         Pollution.Smooth(dt*PollutionDispersal);
+        Beauty.ApplyChanges();
+        Pollution.ApplyChanges();
     }
 
     public void EnvironmentalBeauty(float dt) {

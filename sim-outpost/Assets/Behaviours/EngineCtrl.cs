@@ -84,6 +84,7 @@ public class EngineCtrl : MonoBehaviour {
         Game.Buildings.RemoveAll(e => e.IsDead);
 
         foreach (var e in Game.Entities) {
+            if (Game.NeighbourDist[e.Pos] > Game.VisionRange) { continue; }
             if (e.GameObject == null) AttachGameObject(e);
             e.GameObject.transform.position = e.Pos;
             e.GameObject.transform.rotation = Quaternion.LookRotation(e.Dir, Vector3.up);

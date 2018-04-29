@@ -72,9 +72,16 @@ public class CameraCtrl : MonoBehaviour {
         if (GUI.Button(new Rect(10+2*btnW/3, 40+btnH*3, btnW/3, btnH), "3x")) {
             Game.CursorSize = 3;
         }
-        if (Game.NeighbourDist[Game.SelectedCell] <= Game.BuildRange) {
+        var dh = btnH + padding;
+        if (Game.Buildings.Count == 0) {
+            var didClick = GUI.Button(new Rect(10, 4*dh, btnW, btnH), "Hub");
+            if (didClick) {
+                InputFilter.AbortTap();
+                Game.AddBuilding(Definitions.hub, Game.SelectedCell);
+            }
+        }
+        else if (Game.NeighbourDist[Game.SelectedCell] <= Game.BuildRange) {
             var i = 0;
-            var dh = btnH + padding;
             foreach (var type in Definitions.types.Where(t => t.w == Game.CursorSize)) {
                 if (type.Predicate.CanBuild(type, Game.SelectedCell, Game)) {
                     i++;

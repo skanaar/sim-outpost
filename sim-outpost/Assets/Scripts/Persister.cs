@@ -15,16 +15,16 @@ public class Persister {
 
     public static void LoadGame(Game game) {
         var path = Application.persistentDataPath + "/save.json";
-        Debug.Log($"Loading from ${path}");
         if (File.Exists(path)) {
+            Debug.Log($"Loading from ${path}");
             var json = File.ReadAllText(path);
             var g = JsonUtility.FromJson<SavedGame>(json);
             game.Store = g.Store;
             game.Population = g.Population;
-            game.Terrain = new TerrainGrid(g.Height, g.Water, game.Wells); // TODO wells
+            game.Terrain = new TerrainGrid(new Field(g.Height), new Field(g.Water), game.Wells); // TODO wells
             game.Entities = g.Entities.Select(SavedEntity.Instantiate).ToList();
-            game.Beauty.field = g.Beauty.field;
-            game.Pollution.field = g.Pollution.field;
+            game.Beauty = new Field(g.Beauty);
+            game.Pollution = new Field(g.Pollution);
             game.Buildings = g.Buildings.Select(SavedBuilding.Instantiate).ToList();
             game.CalcNeighbourDistances();
             game.UpdateEnvironment(0.01f);
@@ -35,19 +35,19 @@ public class Persister {
     public class SavedGame {
         public Attr Store;
         public int Population;
-        public Field Height;
-        public Field Water;
-        public Field Beauty;
-        public Field Pollution;
+        public float[] Height;
+        public float[] Water;
+        public float[] Beauty;
+        public float[] Pollution;
         public SavedBuilding[] Buildings;
         public SavedEntity[] Entities;
         public static SavedGame Create(Game game) => new SavedGame {
             Store = game.Store,
             Population = game.Population,
-            Height = game.Terrain.Height,
-            Water = game.Terrain.Water,
-            Beauty = game.Beauty,
-            Pollution = game.Pollution,
+            Height = game.Terrain.Height.RawData,
+            Water = game.Terrain.Water.RawData,
+            Beauty = game.Beauty.RawData,
+            Pollution = game.Pollution.RawData,
             Buildings = game.Buildings.Select(SavedBuilding.Create).ToArray(),
             Entities = game.Entities.Select(SavedEntity.Create).ToArray()
         };

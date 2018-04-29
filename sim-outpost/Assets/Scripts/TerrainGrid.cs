@@ -8,48 +8,21 @@ public class TerrainGrid {
     public Color[] Spectrum = {rgb(0x888),rgb(0x6F2),rgb(0x444),rgb(0xAAA),rgb(0xAAA)};
     public Field Height;
     public Field Water;
-    public Well[] Wells;
-    public Slope Slope;
-    public PeakProminence PeakProminence;
     public Field Change;
     public Field XFlow;
     public Field YFlow;
-
-    static Field GenerateTerrain(int res, float maxHeight, float[] curve, Noise noise) {
-        var height = new Field(res);
-        for (int x = 0; x < res; x++) {
-            for (int y = 0; y < res; y++) {
-                float slope = 20 * (1 - Mathf.Cos(sqrt(sq(x-res/2) + sq(y-res/2))/res));
-                height[x, y] = Posterize(maxHeight * lerp(curve, noise[x, y]) - slope);
-            }
-        }
-        return height;
-    }
-
-    static float Posterize(float v) {
-        var steps = 3f;
-        return lerp(v, Mathf.Round(v * steps) / steps, 0.8f);
-    }
-
-    public TerrainGrid(int res, Well[] wells): this(
-        GenerateTerrain(
-            res,
-            10,
-            new float[]{ 0f, 0.25f, 0.3f, 0.8f, 1 },
-            new Noise{ scale = 12f, octaves = 4 }
-        ),
-        new Field(res),
-        wells
-    ) { }
+    public Well[] Wells;
+    public Slope Slope;
+    public PeakProminence PeakProminence;
 
     public TerrainGrid(Field height, Field water, Well[] wells) {
         Res = height.Res;
         Height = height;
         Water = water;
         Wells = wells;
-        Change = new Field(Res);
-        XFlow = new Field(Res);
-        YFlow = new Field(Res);
+        Change = new Field(Res, buffered: false);
+        XFlow = new Field(Res, buffered: false);
+        YFlow = new Field(Res, buffered: false);
         Slope = new Slope(height);
         PeakProminence = new PeakProminence(Height);
     }
@@ -94,6 +67,7 @@ public class TerrainGrid {
         foreach (var well in Wells) {
             Water[well.Cell] = well.Level;
         }
+        Water.ApplyChanges();
     }
 
     public void UpdateErosion(float dt) {
@@ -106,6 +80,7 @@ public class TerrainGrid {
                 Height[x, y+1] += Erosion * step * YFlow[x, y];
             }
         }
+        Height.ApplyChanges();
     }
     
     public Vector3 GetCorner(int i, int j) => new Vector3(i, Height[i, j], j);

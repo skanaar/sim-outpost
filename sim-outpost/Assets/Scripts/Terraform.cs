@@ -13,6 +13,7 @@
                     Game.Terrain.Height[c] = average;
                 }
             }
+            Game.Terrain.Height.ApplyChanges();
             Game.TerrainController?.OnTerrainChange();
         }
     }
@@ -27,6 +28,7 @@
                     Game.Terrain.Height[c] += delta;
                 }
             }
+            Game.Terrain.Height.ApplyChanges();
             Game.TerrainController?.OnTerrainChange();
         }
     }
